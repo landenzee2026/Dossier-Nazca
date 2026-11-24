@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Dossier Nazca: detectivespel platentektoniek Zuid-Amerika voor vwo 6 (De Geo H1 §1.2).">
+<title>Dossier Nazca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: één scherm als crisiskamer. Links het bewijsstuk (kaart of doorsnede), rechts het dossier met vragen. Bovenin missiebalk met klok en score. */
+:root{
+  --ink:#0c1822;        /* ondergrond: diep oceaanblauw */
+  --panel:#122330;      /* panelen */
+  --panel2:#18303f;     /* verhoogde vlakken */
+  --line:#284457;       /* lijnen, rasters */
+  --fg:#e3eaee;         /* tekst */
+  --muted:#93aab6;      /* secundaire tekst */
+  --amber:#f3a83b;      /* accent: seismisch alarm */
+  --magma:#ec5b34;      /* vulkanen, fouten, deadline */
+  --slab:#55c1c9;       /* data: aardbevingen */
+  --ok:#86cf8a;         /* goed */
+  --land:#2a3d33;       /* land op kaart */
+  --land2:#36503f;
+  --sea:#0f2231;
+  --font-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--ink);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.45;
+  background-image:linear-gradient(rgba(85,193,201,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(85,193,201,.035) 1px,transparent 1px);
+  background-size:28px 28px;}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.app{height:100%;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;gap:10px;max-width:1500px;margin:0 auto}
+
+/* Missiebalk */
+.bar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.brand{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:.06em;line-height:1;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--magma);box-shadow:0 0 0 0 rgba(236,91,52,.7);animation:ping 1.6s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(236,91,52,.7)}70%{box-shadow:0 0 0 10px rgba(236,91,52,0)}100%{box-shadow:0 0 0 0 rgba(236,91,52,0)}}
+.pips{display:flex;gap:6px;flex:1;min-width:0;justify-content:center;flex-wrap:wrap}
+.pip{font-family:var(--font-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:3px;color:var(--muted);white-space:nowrap}
+.pip.on{border-color:var(--amber);color:var(--amber)}
+.pip.done{background:rgba(134,207,138,.12);border-color:rgba(134,207,138,.5);color:var(--ok)}
+.meters{display:flex;gap:16px;align-items:center}
+.meter{display:flex;flex-direction:column;align-items:flex-end;line-height:1.05}
+.meter small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.meter b{font-family:var(--font-mono);font-weight:600;font-size:24px;font-variant-numeric:tabular-nums}
+.meter.clock b{color:var(--amber)}
+.meter.clock.low b{color:var(--magma);animation:blink 1s steps(2) infinite}
+.meter.clock.over b{color:var(--magma)}
+@keyframes blink{50%{opacity:.45}}
+.penalty{position:fixed;z-index:30;font-family:var(--font-mono);color:var(--magma);font-weight:600;pointer-events:none;animation:floatup 1.2s ease-out forwards}
+@keyframes floatup{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-30px)}}
+
+/* Hoofdgrid */
+.main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);gap:10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.phead{display:flex;align-items:baseline;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--amber);padding:2px 7px;border-radius:2px;font-weight:600}
+.tag.teal{background:var(--slab)}
+.phead h2{margin:0;font-family:var(--font-display);font-weight:600;font-size:21px;letter-spacing:.03em;text-transform:uppercase;text-wrap:balance}
+.phead .src{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.figwrap{flex:1;min-height:0;position:relative;padding:8px;display:flex;align-items:center;justify-content:center}
+.figwrap svg{width:100%;height:100%;display:block}
+.figfoot{padding:6px 14px 9px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.lg{display:inline-flex;align-items:center;gap:6px}
+.lg i{display:inline-block;width:14px;height:3px;border-radius:2px}
+.case{flex:1;min-height:0;overflow-y:auto;padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px}
+.lead{margin:0;color:var(--fg);max-width:65ch}
+.lead em{color:var(--amber);font-style:normal}
+.qbox{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.qnum{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.qtext{margin:0;font-weight:600;font-size:15.5px;text-wrap:pretty}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{text-align:left;background:var(--ink);border:1px solid var(--line);border-radius:5px;padding:8px 11px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--muted)}
+.opt .k{font-family:var(--font-mono);font-size:12px;color:var(--muted);min-width:18px;padding-top:1px}
+.opt.sel{border-color:var(--amber);background:rgba(243,168,59,.08)}
+.opt.sel .k{color:var(--amber)}
+.opt.bad{border-color:var(--magma);opacity:.55}
+.opt.good{border-color:var(--ok);background:rgba(134,207,138,.1)}
+.opt[disabled]{cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--amber);color:#1b1206;border:0;border-radius:4px;padding:8px 16px;font-weight:600;cursor:pointer;letter-spacing:.02em}
+.btn:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.4;cursor:default;filter:none}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.btn.ghost:hover{color:var(--fg);border-color:var(--muted)}
+.btn.big{font-size:17px;padding:11px 24px}
+.fb{border-left:3px solid var(--magma);padding:6px 10px;background:rgba(236,91,52,.08);font-size:14px;border-radius:0 4px 4px 0}
+.fb.ok{border-color:var(--ok);background:rgba(134,207,138,.08)}
+.fb.hint{border-color:var(--slab);background:rgba(85,193,201,.08)}
+.fb b{font-weight:600}
+.assign{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 10px;align-items:center}
+.assign label{font-size:14px}
+.assign label b{font-family:var(--font-mono);color:var(--amber);margin-right:4px}
+select,input[type=number],input[type=text]{background:var(--ink);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:6px 8px;font:inherit;font-size:14px;width:100%;min-width:0}
+select.bad{border-color:var(--magma)} select.good{border-color:var(--ok)}
+.numrow{display:flex;gap:8px;align-items:center}
+.numrow input{width:120px}
+.seq{display:flex;flex-direction:column;gap:6px}
+.card{background:var(--ink);border:1px dashed var(--line);border-radius:5px;padding:7px 10px;cursor:pointer;font-size:14px;text-align:left;display:flex;gap:10px}
+.card:hover{border-color:var(--muted)}
+.card.used{opacity:.35;cursor:default}
+.card .n{font-family:var(--font-mono);color:var(--amber);min-width:16px}
+.slotlist{display:flex;flex-direction:column;gap:5px;counter-reset:s}
+.slot{border:1px solid var(--line);border-radius:5px;padding:7px 10px;font-size:14px;min-height:36px;background:rgba(243,168,59,.05);display:flex;gap:10px}
+.slot .n{font-family:var(--font-mono);color:var(--amber)}
+.slot.empty{color:var(--muted);font-style:italic;background:transparent}
+input[type=range]{width:100%;accent-color:var(--amber)}
+.anglev{font-family:var(--font-mono);font-size:22px;color:var(--amber);min-width:70px;text-align:right}
+.concl{border:1px solid rgba(134,207,138,.45);background:rgba(134,207,138,.06);border-radius:6px;padding:12px 14px;position:relative;overflow:hidden}
+.concl h3{margin:0 0 4px;font-family:var(--font-display);font-size:19px;letter-spacing:.04em;text-transform:uppercase;color:var(--ok)}
+.concl p{margin:0;max-width:62ch}
+.stamp{position:absolute;right:12px;top:8px;font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:.08em;color:var(--ok);border:3px solid var(--ok);padding:0 10px;transform:rotate(-8deg);opacity:.85;animation:stamp .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stamp{from{transform:rotate(-8deg) scale(2.2);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:.85}}
+.pts{font-family:var(--font-mono);color:var(--amber)}
+
+/* Intro en rapport */
+.full{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:10px}
+.hero{padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.alert{display:flex;gap:10px;align-items:center;font-family:var(--font-mono);font-size:12.5px;color:var(--magma);letter-spacing:.08em;text-transform:uppercase}
+.hero h1{margin:0;font-family:var(--font-display);font-weight:800;font-size:clamp(40px,5.4vw,72px);line-height:.92;letter-spacing:.02em;text-transform:uppercase;text-wrap:balance}
+.hero h1 span{color:var(--amber)}
+.readout{font-family:var(--font-mono);font-size:13px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.readout div{background:var(--ink);padding:7px 10px;min-width:0}
+.readout small{display:block;font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.readout b{font-weight:600;font-size:15px;color:var(--fg)}
+canvas.seis{width:100%;height:120px;display:block;background:var(--ink);border:1px solid var(--line);border-radius:4px}
+.brief{margin:0;max-width:62ch}
+.brief strong{color:var(--amber);font-weight:600}
+.qlist{margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.qlist li{display:flex;gap:10px;align-items:baseline}
+.qlist li span{font-family:var(--font-mono);color:var(--amber);font-size:12px}
+.whk{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 12px;font-size:14px;margin:0}
+.whk dt{font-family:var(--font-display);font-weight:800;font-size:17px;letter-spacing:.06em;color:var(--slab)}
+.whk dd{margin:0}
+.side{padding:18px 20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.side h3{margin:0;font-family:var(--font-display);font-size:20px;letter-spacing:.05em;text-transform:uppercase}
+.note{font-size:12.5px;color:var(--muted)}
+.report{padding:20px 24px;display:flex;flex-direction:column;gap:14px;position:relative}
+.rank{font-family:var(--font-display);font-weight:800;font-size:40px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);border:4px solid var(--amber);padding:2px 16px;transform:rotate(-4deg);align-self:flex-start;animation:stamp .5s cubic-bezier(.2,1.6,.4,1)}
+.rtab{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.rtab td,.rtab th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.rtab th{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.rtab td.r,.rtab th.r{text-align:right;font-family:var(--font-mono)}
+.rtab tr.tot td{font-weight:600;color:var(--amber);border-bottom:0}
+.memo{display:flex;flex-direction:column;gap:9px}
+.memo div{border-left:3px solid var(--slab);padding:4px 10px}
+.memo b{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--slab);font-weight:600}
+.task{border:1px dashed var(--amber);border-radius:6px;padding:12px 14px;background:rgba(243,168,59,.05)}
+.task h3{color:var(--amber)}
+.fadein{animation:fi .4s ease-out}
+@keyframes fi{from{opacity:.0;transform:translateY(6px)}to{opacity:1;transform:none}}
+svg text{font-family:var(--font-mono)}
+.pulse{animation:pr 2s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pr{0%{transform:scale(.4);opacity:.9}100%{transform:scale(3.2);opacity:0}}
+.dropin{animation:dropin .5s ease-out both}
+@keyframes dropin{from{opacity:0}to{opacity:1}}
+.draw{stroke-dasharray:2000;stroke-dashoffset:2000;animation:draw 1.6s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.pick{cursor:crosshair}
+.rocks{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;height:100%;padding:6px}
+.rock{display:flex;flex-direction:column;gap:8px;min-width:0}
+.rock canvas{width:100%;aspect-ratio:4/3;border-radius:50% 46% 48% 44%/44% 50% 46% 52%;display:block;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.rock h4{margin:0;font-family:var(--font-display);font-size:20px;letter-spacing:.05em;text-transform:uppercase}
+.rock dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px;font-size:13px}
+.rock dt{color:var(--muted)} .rock dd{margin:0}
+.rock .find{font-family:var(--font-mono);font-size:11.5px;color:var(--amber)}
+@media (max-width:900px){
+  html,body{height:auto}
+  .app{height:auto}
+  .main,.full{grid-template-columns:1fr}
+  .figwrap{height:62vw;min-height:300px}
+  .case{overflow:visible}
+  .meters{margin-left:auto}
+  .readout{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rocks{grid-template-columns:1fr}
+}
+@media (max-height:760px) and (min-width:901px){
+  body{font-size:14px}
+  .qtext{font-size:14.5px}
+  .opt{padding:6px 10px}
+  .hero{padding:14px 20px;gap:10px}
+  canvas.seis{height:90px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.draw{stroke-dashoffset:0}}
+
+body{margin:0}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+const DATA = {"W":788.5,"H":750,"land":"M327.6,662.7L331.5,663.2L330.7,664.8L332.9,665.7L333.0,664.2L335.5,663.8L337.1,665.2L335.7,665.8L337.2,666.4L329.1,669.4L329.4,671.0L324.5,670.2L325.7,671.7L323.2,672.0L322.7,673.1L320.4,671.3L321.1,669.3L325.7,666.9L325.4,664.9L327.6,662.7ZM524.7,690.7L528.3,691.1L528.9,692.6L531.8,692.5L534.1,695.5L535.7,695.5L535.5,697.1L536.5,697.6L533.9,698.7L526.7,693.4L519.9,691.7L520.0,690.4L516.4,690.1L524.7,690.7ZM192.4,583.5L189.3,583.6L186.8,582.3L188.4,578.8L190.0,568.0L194.6,569.0L195.6,571.9L194.6,573.1L195.1,574.7L192.2,575.9L195.4,579.4L192.6,581.6L192.4,583.5ZM314.6,664.6L322.8,663.6L323.8,664.3L317.9,669.7L315.0,669.9L312.6,671.9L308.5,670.6L315.0,667.7L311.9,667.1L315.0,666.4L312.1,663.6L314.6,664.6ZM186.0,641.5L186.2,646.9L184.9,650.1L183.4,650.1L182.3,647.3L183.8,644.2L181.6,645.3L180.7,648.5L176.3,647.9L176.5,646.2L178.2,646.3L178.5,644.9L177.0,643.6L180.5,642.7L179.4,641.5L181.7,639.6L182.2,637.3L185.4,637.7L186.0,641.5ZM199.5,597.8L197.3,598.6L195.8,597.7L195.4,596.4L197.0,593.5L201.4,595.1L199.5,597.8ZM234.1,676.7L237.5,675.8L239.5,676.9L242.5,680.8L240.8,680.6L240.3,682.6L243.2,683.1L244.6,685.6L251.1,690.5L260.7,695.3L270.3,696.8L267.6,699.1L258.2,700.3L242.7,698.2L234.9,699.1L229.1,697.1L222.1,698.1L209.3,696.0L210.3,694.3L216.8,694.4L219.4,693.3L220.2,694.9L223.8,695.3L218.8,691.1L218.7,688.8L220.7,688.2L220.3,687.3L221.8,686.3L223.1,689.9L220.9,690.1L224.4,693.5L228.9,693.1L232.3,694.4L232.8,695.7L235.2,694.3L226.7,691.1L225.2,688.9L225.8,687.2L232.4,684.8L232.1,683.7L224.6,684.1L222.4,682.1L223.0,680.3L225.4,679.4L223.1,677.5L227.2,678.2L231.1,674.9L234.1,676.7ZM411.2,152.3L415.8,151.6L422.4,153.0L418.4,163.9L416.6,165.1L415.3,164.1L414.8,166.0L412.3,165.1L411.6,167.1L409.6,167.9L407.2,167.0L403.2,167.9L401.0,162.4L402.6,161.0L400.6,159.1L402.0,152.7L405.6,151.2L411.2,152.3ZM248.6,708.9L246.1,708.4L248.6,708.9ZM227.5,25.5L226.3,23.9L227.5,25.5ZM270.0,40.9L268.1,40.6L270.0,40.9ZM331.4,670.1L331.4,671.0L330.4,670.3L331.4,670.1ZM145.9,67.3L146.1,65.4L145.9,67.3ZM258.6,702.3L257.1,702.3L258.6,702.3ZM180.9,598.9L180.0,598.2L180.9,598.9ZM176.6,637.6L175.6,637.6L175.4,635.9L176.6,633.3L176.2,630.7L177.7,630.2L179.8,636.2L176.6,637.6ZM178.5,656.8L178.3,657.7L177.3,657.4L177.4,654.8L180.2,655.1L178.5,656.8ZM186.8,679.2L193.5,680.7L198.2,683.5L194.2,683.1L191.5,681.0L187.9,680.8L183.9,677.7L186.8,679.2ZM229.3,699.2L236.5,700.2L240.6,699.6L241.1,700.4L239.1,701.6L242.1,702.6L241.7,703.3L243.9,704.8L244.3,706.4L236.8,704.5L236.6,702.4L233.9,701.7L232.4,703.0L234.0,704.7L231.9,704.4L229.7,702.3L226.8,701.5L227.6,698.8L229.3,699.2ZM180.3,638.4L177.7,641.6L175.5,642.0L176.8,640.8L175.5,639.4L176.0,638.6L180.3,638.4ZM316.2,664.0L315.0,664.0L314.7,662.8L316.6,663.1L316.2,664.0ZM180.2,628.4L179.4,627.3L181.9,627.2L180.2,628.4ZM184.3,586.1L182.7,585.7L184.3,586.1ZM193.7,598.2L192.0,596.5L192.3,595.6L193.6,596.1L193.7,598.2ZM185.2,635.9L182.0,636.3L179.3,631.4L179.5,629.7L182.8,628.5L185.2,635.9ZM276.0,697.2L282.6,697.3L275.2,699.0L274.1,698.3L276.0,697.2ZM300.2,541.7L298.2,540.9L300.2,541.7ZM320.1,672.3L319.1,671.3L320.1,672.3ZM308.0,667.9L309.3,667.9L308.6,669.5L306.8,668.4L308.0,667.9ZM200.1,684.8L200.5,685.8L204.1,685.9L206.6,688.1L204.7,690.0L200.8,691.3L199.8,690.7L201.5,688.6L199.0,688.3L198.7,690.0L197.5,689.9L196.5,687.3L191.7,685.5L195.3,684.1L200.1,684.8ZM253.0,701.5L250.7,702.9L249.3,701.8L244.1,702.2L242.0,699.8L251.5,699.8L253.0,701.5ZM217.6,698.7L219.3,699.7L222.8,699.1L223.9,701.1L222.3,701.8L215.7,698.9L213.8,699.3L213.8,698.4L217.6,698.7ZM251.1,707.8L248.7,707.1L250.4,705.9L251.1,707.8ZM185.3,662.8L184.7,664.0L180.8,664.0L178.6,666.3L179.9,662.8L184.8,662.1L185.3,662.8ZM180.8,653.0L177.2,653.4L178.3,650.1L182.4,651.1L182.7,652.0L180.8,653.0ZM182.9,666.3L183.3,668.2L185.5,669.7L184.0,672.8L182.6,672.7L180.3,667.9L182.9,666.3ZM192.0,588.3L190.7,589.2L189.0,588.7L192.0,588.3ZM214.0,690.3L217.3,691.1L216.2,693.7L213.2,692.3L208.9,693.0L206.5,690.5L208.5,688.8L214.0,690.3ZM189.0,669.3L187.3,669.0L186.0,667.3L189.0,669.3ZM192.7,593.9L190.3,595.9L191.9,598.4L192.6,602.7L189.4,603.3L189.5,602.0L184.7,596.5L186.0,595.8L185.8,594.7L189.4,593.9L190.4,591.4L193.0,592.7L192.7,593.9ZM187.5,606.9L186.1,607.6L184.1,606.6L185.8,602.9L187.5,601.7L188.2,606.1L187.5,606.9ZM461.0,381.4L459.0,381.7L460.0,380.7L461.0,381.4ZM420.7,414.0L419.9,412.9L421.1,411.7L420.7,414.0ZM421.6,427.7L420.9,428.1L421.1,425.7L422.2,424.0L421.6,427.7ZM450.8,388.9L449.1,389.0L450.4,387.3L450.8,388.9ZM115.7,56.2L114.9,55.8L115.7,56.2ZM309.1,11.8L308.6,12.8L307.5,11.3L309.0,9.1L309.1,11.8ZM309.7,5.1L307.6,5.3L308.0,4.0L306.2,1.5L308.8,2.4L309.7,5.1ZM308.0,48.7L299.9,49.3L303.6,47.3L303.8,44.0L302.2,42.8L308.9,41.6L307.8,43.3L308.0,48.7ZM242.8,28.6L242.4,29.7L241.4,27.0L242.8,28.6ZM310.4,38.2L312.4,36.7L310.4,38.2ZM321.8,19.2L320.7,19.0L320.4,17.0L322.4,18.5L321.8,19.2ZM282.3,38.7L281.7,41.1L277.3,40.2L279.0,39.1L280.7,40.0L282.3,38.7ZM301.7,29.9L301.7,28.1L302.6,27.8L301.7,29.9ZM306.6,18.4L305.7,17.1L306.9,16.4L306.6,18.4ZM237.9,29.4L235.7,28.6L234.2,26.2L237.9,29.4ZM308.2,61.3L307.5,60.5L308.9,59.3L309.4,60.5L308.2,61.3ZM134.8,179.7L133.5,180.0L133.9,177.5L136.0,176.7L136.8,177.3L134.8,179.7ZM391.2,164.3L390.3,164.5L393.8,156.5L396.5,155.4L397.3,156.7L396.3,160.2L391.2,164.3ZM144.4,67.5L144.0,67.9L144.4,67.5ZM145.8,137.5L145.1,137.1L145.9,136.4L145.8,137.5ZM153.0,124.6L152.5,123.5L153.0,124.6ZM309.8,58.6L308.7,58.9L309.8,58.6ZM457.7,179.4L456.8,180.4L457.9,177.2L457.7,179.4ZM509.9,281.0L510.5,278.8L511.1,279.9L509.9,281.0ZM508.4,284.7L507.3,284.5L508.4,284.7ZM454.2,163.2L453.0,163.7L453.3,162.7L454.2,163.2ZM410.2,147.3L408.6,150.2L404.8,149.6L405.4,147.7L410.2,147.3ZM405.1,130.6L403.7,130.9L403.4,128.7L404.7,128.6L405.1,130.6ZM401.9,151.3L399.4,153.3L398.4,152.3L400.2,150.5L401.9,151.3ZM412.9,151.1L409.4,150.9L412.3,149.2L413.5,150.0L412.9,151.1ZM404.0,148.6L403.8,150.1L402.2,149.5L402.3,148.0L404.5,144.1L404.8,147.4L404.0,148.6ZM406.5,146.1L405.5,146.4L405.3,144.8L407.3,143.6L406.5,146.1ZM42.3,157.7L40.4,156.8L40.5,155.8L42.9,154.8L43.6,156.6L42.3,157.7ZM50.6,159.1L48.9,158.9L51.8,156.9L50.6,159.1ZM121.4,76.7L119.2,75.5L119.5,74.1L120.3,73.8L121.4,76.7ZM32.4,154.6L30.7,154.4L30.4,152.8L32.1,152.6L32.4,154.6ZM41.5,163.4L41.0,162.2L41.5,163.4ZM33.8,149.7L38.1,157.5L37.1,159.4L35.1,160.2L32.5,160.0L31.8,158.6L35.2,155.6L32.9,152.9L32.4,150.2L30.8,150.0L33.0,148.7L33.8,149.7ZM40.1,153.3L37.5,152.7L38.2,151.6L40.1,153.3ZM6.3,-50.0L356.4,-50.0L-25.9,-50.0L-15.5,-50.0L-13.2,-48.7L-11.7,-43.4L-7.1,-38.1L-8.3,-38.2L-5.7,-36.9L-6.3,-37.7L-1.6,-37.0L1.8,-35.1L4.1,-31.7L5.5,-31.7L13.1,-34.3L19.2,-34.7L23.2,-36.8L27.4,-37.2L28.0,-35.3L31.4,-34.6L33.8,-36.2L33.1,-39.0L32.1,-38.6L38.6,-43.5L39.0,-47.3L40.9,-50.0L74.6,-50.0L68.3,-50.0L68.5,-48.6L66.3,-45.9L68.7,-45.8L68.6,-45.0L66.5,-43.5L66.6,-42.6L68.0,-42.9L64.8,-32.7L62.9,-35.2L63.2,-38.4L61.7,-37.2L60.3,-33.6L62.3,-33.5L62.7,-32.3L61.0,-26.1L60.6,-16.3L55.3,-8.9L58.0,-7.6L58.1,-9.5L62.3,-7.0L66.1,-9.1L68.1,-7.9L73.3,-7.6L78.3,-7.8L82.1,-9.5L81.7,-10.2L86.2,-9.0L90.9,-9.9L94.6,-8.0L97.3,-8.2L101.7,-4.4L98.9,-5.1L98.8,-4.0L100.4,-3.9L101.9,-2.2L104.2,-2.2L102.9,-3.7L105.4,-2.4L107.3,0.1L106.2,1.9L105.6,1.0L105.0,1.7L107.1,6.6L104.3,12.6L104.1,25.9L103.1,25.4L103.4,22.9L101.9,25.0L102.6,29.8L101.8,29.4L101.2,31.4L102.9,33.6L100.9,37.0L105.6,46.8L110.8,53.3L114.5,55.7L114.7,57.9L116.1,58.1L115.6,59.7L117.1,60.7L119.8,60.4L118.8,58.6L121.9,61.7L126.3,61.9L134.8,57.9L139.8,54.0L144.0,54.6L149.5,55.9L155.6,59.3L164.5,69.1L164.1,70.6L165.1,70.7L165.2,66.9L163.9,64.3L169.7,60.1L172.0,56.3L175.5,55.5L175.1,52.7L176.4,47.9L174.8,48.6L179.0,42.2L182.7,38.9L187.3,40.0L185.6,41.4L186.7,42.3L189.0,36.8L196.5,37.0L206.0,31.1L207.2,28.1L212.1,25.7L215.1,26.6L216.3,29.5L213.8,32.4L208.8,34.3L209.9,38.1L211.7,39.9L210.9,40.1L212.1,43.4L207.4,51.8L211.9,59.5L215.3,58.4L216.7,56.5L217.0,52.9L213.0,44.7L213.3,40.4L224.5,36.3L225.7,34.8L228.3,35.3L228.2,33.3L224.8,33.8L224.0,31.1L224.7,29.0L226.5,28.2L229.9,35.2L237.2,35.7L241.1,38.4L243.4,45.1L260.6,43.7L264.2,47.4L270.7,49.3L273.2,49.0L279.2,45.4L283.4,45.0L278.7,44.6L278.3,43.6L300.2,42.6L295.6,44.5L290.8,44.7L292.9,47.1L292.4,49.4L294.1,48.0L296.2,52.2L297.1,51.2L297.7,51.8L298.4,50.2L301.5,53.7L301.2,51.9L302.8,51.1L310.0,56.4L307.9,58.5L305.9,64.0L302.5,64.0L305.4,65.9L309.9,64.1L315.7,63.8L324.5,69.3L328.0,72.6L331.0,76.7L329.2,86.1L331.6,81.5L335.5,82.1L339.5,86.7L342.3,88.2L342.7,94.7L344.7,90.1L351.3,91.1L354.4,93.0L355.0,90.4L368.4,90.9L371.1,91.9L370.2,96.4L373.0,92.2L381.6,95.7L387.1,100.6L386.8,102.3L387.7,101.4L389.2,102.8L389.7,106.5L391.3,103.6L392.9,109.4L393.8,106.9L396.8,109.1L401.4,128.7L403.7,131.7L408.2,133.4L408.8,138.4L401.0,147.8L396.2,150.9L389.9,163.7L383.7,165.5L390.2,165.9L399.7,159.4L401.6,167.6L404.2,170.2L407.8,168.3L410.4,169.3L414.1,167.3L411.1,176.6L412.8,175.0L415.0,169.2L417.0,168.3L419.5,164.9L421.8,166.1L422.8,164.8L421.7,163.9L421.9,161.5L424.9,157.4L430.0,156.7L431.2,157.7L431.0,156.5L432.6,156.5L449.0,163.6L450.2,167.2L452.5,164.7L455.7,167.3L455.2,168.0L456.3,167.5L457.3,170.5L455.4,172.7L456.2,173.7L458.3,171.7L458.8,173.7L456.9,175.7L455.7,182.0L458.3,179.4L460.1,174.7L461.3,174.9L460.5,178.1L462.8,175.8L467.2,175.0L467.8,173.8L478.1,177.9L481.5,177.5L485.1,179.2L494.2,178.0L498.8,178.6L512.3,187.2L516.2,192.2L520.0,195.9L522.9,197.1L524.1,199.1L529.4,201.0L538.8,201.3L541.7,205.7L545.5,222.9L544.1,234.1L542.4,239.3L538.4,245.4L535.7,246.9L535.8,248.5L531.1,254.8L526.2,258.2L522.8,263.8L522.4,262.5L519.4,271.0L514.4,278.4L512.1,279.6L510.3,276.2L508.9,277.9L509.7,279.1L506.7,285.9L507.6,286.2L507.1,290.4L508.1,290.3L507.0,296.5L508.6,308.6L505.7,321.8L506.1,327.0L501.6,332.5L500.4,345.7L498.5,347.4L494.9,355.7L491.3,359.1L489.8,362.4L489.4,370.0L483.0,373.1L480.5,375.8L480.0,379.5L471.7,379.7L469.9,377.3L469.2,379.9L463.1,381.0L465.2,380.1L463.4,379.1L456.4,380.6L456.1,382.1L457.1,382.7L450.2,386.0L448.9,388.0L444.3,388.0L436.2,392.4L426.1,400.4L426.6,401.7L424.1,404.2L424.3,403.1L422.3,402.7L421.6,404.4L419.3,403.7L419.7,404.9L422.3,406.0L419.9,408.4L420.4,411.8L419.2,412.7L420.9,422.0L420.3,430.8L418.7,435.8L414.4,438.7L410.1,443.6L405.1,454.3L399.5,462.6L389.4,471.1L389.1,468.3L392.6,467.7L396.3,464.8L397.3,461.2L399.0,460.9L399.3,459.0L401.6,457.0L401.3,454.3L402.6,454.4L402.7,452.5L398.5,453.7L396.1,450.3L397.4,453.6L396.2,457.5L395.5,456.7L394.2,461.0L390.0,463.8L388.0,468.9L388.6,471.7L383.8,481.4L376.8,487.8L373.5,493.8L370.1,496.7L363.4,499.3L356.4,497.8L351.7,499.1L342.8,494.5L336.9,494.8L331.7,489.1L331.4,487.2L332.0,481.8L334.5,479.7L333.5,474.7L333.8,479.6L331.5,481.1L330.4,486.6L331.8,491.9L330.6,493.0L332.8,496.8L339.4,500.2L342.9,503.6L341.0,509.0L343.7,513.0L347.0,513.9L346.9,519.6L340.8,527.4L339.4,530.9L333.7,534.4L318.8,538.4L307.1,539.9L300.5,539.6L296.0,538.0L296.4,542.4L298.6,543.7L297.5,543.8L298.4,544.6L297.9,548.3L296.5,549.0L295.4,552.0L296.8,556.7L295.5,558.9L290.4,561.1L284.4,561.6L273.1,557.4L271.3,558.1L270.5,561.1L272.0,571.0L276.1,572.5L275.8,574.2L277.1,574.3L280.0,574.0L280.4,572.7L278.9,572.2L282.8,571.1L284.3,572.8L284.4,577.0L280.6,578.8L276.5,575.1L272.2,576.7L271.6,577.6L278.1,579.7L273.3,581.9L269.6,585.7L269.5,592.8L266.0,596.6L266.1,600.1L261.1,599.6L254.3,602.6L248.3,610.5L249.2,614.4L255.8,620.1L264.2,621.6L265.2,623.4L264.9,625.7L260.8,628.3L263.4,628.3L264.6,629.4L249.5,639.5L247.6,642.5L246.7,648.6L245.5,649.8L242.4,651.0L238.7,647.5L238.7,649.4L235.8,650.0L239.3,650.1L240.9,651.6L236.2,653.8L234.2,658.6L232.4,660.3L233.8,659.9L235.1,665.5L231.4,665.8L236.0,666.8L241.1,673.1L233.5,672.1L230.0,674.6L219.4,677.7L217.6,687.8L214.8,688.8L206.9,686.3L204.7,683.5L209.0,682.3L210.0,684.0L209.4,685.2L210.3,684.8L210.8,682.3L214.9,680.3L216.0,678.9L215.5,678.1L214.0,677.6L205.9,681.3L203.5,684.6L198.9,682.4L201.9,677.6L204.3,678.1L207.4,676.5L212.9,676.1L206.4,675.2L204.5,676.3L202.0,675.4L198.3,680.7L196.3,680.5L193.5,678.4L197.2,677.1L198.3,674.9L197.2,676.2L194.1,676.9L190.2,676.4L190.0,674.0L189.0,673.8L187.9,671.0L191.8,672.3L193.2,670.8L197.0,671.6L201.2,669.5L203.3,672.0L202.0,673.6L203.7,672.6L202.8,670.1L204.0,668.5L203.5,667.1L197.9,664.5L203.0,668.0L194.7,670.4L192.6,668.0L188.5,666.8L191.0,666.2L190.9,662.7L182.9,660.6L180.4,656.8L184.1,656.6L183.3,654.7L184.5,653.6L187.0,654.9L189.1,658.2L192.1,659.4L192.7,657.0L193.8,656.5L193.5,654.9L190.5,658.3L188.5,656.1L188.6,654.9L190.8,655.1L184.6,651.9L187.3,649.7L190.7,649.9L187.4,647.8L187.7,646.0L191.8,646.1L189.5,644.3L190.9,640.2L190.1,640.3L188.3,645.0L187.0,644.0L187.2,636.0L190.2,634.8L186.0,634.6L185.0,630.0L195.8,631.5L193.9,629.9L192.9,626.6L190.9,629.3L188.3,629.7L184.4,627.0L185.5,625.7L188.1,626.8L189.1,625.9L186.0,624.3L188.9,621.8L188.9,619.7L187.5,617.9L186.2,617.7L185.7,618.9L181.2,617.4L181.4,615.1L176.4,617.0L177.4,619.3L175.5,618.6L174.9,617.1L181.9,611.6L180.7,608.7L188.9,607.7L189.2,605.0L190.7,604.0L191.9,604.5L190.1,610.6L186.8,612.2L190.6,611.5L191.4,608.5L192.7,608.1L193.0,610.7L190.8,615.3L191.7,615.7L194.0,609.0L194.0,607.8L192.5,607.0L192.8,604.8L197.0,603.5L200.0,604.5L195.4,602.4L195.7,601.0L196.1,599.8L201.8,597.3L202.3,595.9L202.4,594.4L197.0,591.7L197.4,589.0L198.8,588.6L199.4,586.3L198.7,583.2L200.5,580.5L201.6,580.4L200.8,576.7L201.4,575.1L202.7,575.1L201.4,572.6L202.7,572.0L204.7,573.9L203.9,569.8L201.0,569.1L205.2,566.5L205.6,565.0L203.5,566.9L199.8,565.1L197.2,567.8L193.7,567.7L192.7,567.4L193.7,565.8L192.0,565.2L190.6,561.2L193.3,549.6L195.7,547.9L197.3,542.2L194.7,535.1L195.2,530.4L193.4,527.0L193.4,523.4L193.9,521.9L197.4,521.7L198.3,516.9L203.1,507.6L202.8,505.9L206.4,501.0L208.4,491.7L211.5,486.5L210.8,481.0L213.4,476.6L211.1,456.3L211.4,453.3L213.9,451.4L214.7,446.5L212.8,439.3L215.8,433.8L220.7,413.3L220.1,407.8L222.5,402.5L221.4,396.4L223.0,385.7L221.2,382.6L221.5,380.6L223.6,378.5L225.8,364.9L224.8,357.3L225.2,348.1L223.3,334.0L214.5,326.8L212.7,322.9L204.2,317.1L192.8,312.0L180.3,304.1L176.4,299.0L172.8,296.3L168.8,288.6L169.8,288.0L170.2,283.7L164.7,273.5L161.8,270.6L161.1,266.6L157.4,262.9L156.5,258.4L152.4,250.9L147.2,236.2L141.6,228.4L136.0,217.7L125.6,210.6L125.4,208.8L127.5,208.4L128.0,206.4L123.8,196.7L124.8,192.3L128.7,187.3L135.7,182.3L138.4,175.8L137.4,170.7L136.6,175.5L135.7,175.6L135.9,173.5L133.4,177.1L127.2,171.9L129.0,170.8L129.1,169.3L127.8,160.8L130.9,158.5L131.8,155.9L133.4,156.2L131.6,153.7L135.5,148.4L135.1,142.2L145.9,137.9L146.3,135.4L144.8,133.8L146.9,131.5L148.8,132.3L148.7,126.4L150.3,125.2L153.5,124.9L155.8,122.8L162.4,110.9L160.7,111.1L160.6,109.4L159.9,110.6L159.4,107.5L158.4,107.9L160.5,102.8L159.8,96.8L158.3,94.6L160.9,92.2L158.9,88.2L159.8,84.2L152.5,74.6L150.3,69.4L151.5,69.1L152.8,66.1L156.2,68.7L153.2,65.0L152.1,66.0L150.5,64.9L150.4,66.4L149.4,63.7L145.4,60.7L141.0,59.9L138.8,61.5L138.2,64.0L131.8,67.9L135.8,75.0L132.0,77.3L128.3,77.8L126.3,71.0L124.5,73.7L122.3,72.8L120.3,68.6L116.4,68.1L115.7,66.9L111.7,66.8L110.0,67.5L109.9,69.3L106.2,63.4L104.5,62.9L106.1,65.9L103.3,65.2L102.1,63.9L103.2,62.0L102.1,58.5L94.4,54.3L93.2,51.0L88.5,47.6L88.5,48.9L91.7,51.8L89.9,54.0L85.0,51.0L82.9,47.1L84.6,43.6L82.4,41.0L83.9,39.1L77.3,32.6L73.9,27.5L66.5,21.0L67.2,19.6L69.4,20.5L68.1,16.5L65.1,16.0L63.2,18.3L57.2,17.2L58.8,18.2L47.1,14.4L41.0,11.0L32.8,10.1L24.8,4.3L9.8,-10.5L5.7,-12.8L5.2,-12.3L9.1,-10.2L3.1,-12.0L3.5,-13.5L1.9,-12.9L0.9,-14.2L-0.2,-12.8L1.8,-12.1L-1.2,-11.8L-4.2,-9.7L-13.7,-6.5L-19.8,-9.1L-25.0,-9.7L-31.9,-13.0L-34.1,-15.3L-42.5,-17.2L-45.3,-19.2L-45.3,-50.0L6.3,-50.0ZM146.8,486.5L145.1,486.6L146.1,485.8L146.8,486.5Z","bnd":{"AF-SA":["div","M437.2,-4.5L452.0,-2.7L451.9,9.7L452.6,10.1L452.8,23.2L459.8,23.7L459.7,29.0L463.3,29.1L462.9,40.7L488.6,42.1L488.7,50.2L490.7,50.3L490.6,56.1L492.7,56.3L492.6,61.6L497.4,61.8L497.2,67.8L514.6,68.6L514.7,73.0L526.9,73.5L527.0,76.0L534.2,76.4L534.3,79.8L540.5,80.7L540.5,83.9L556.3,83.8L556.3,89.0L557.3,89.2L557.3,93.5L562.1,93.5L563.2,110.4L580.4,109.4L582.4,133.6L588.9,133.9L589.8,142.0L621.1,138.4L622.7,145.0L634.1,143.9L637.9,161.0L665.7,156.8L711.5,147.0L713.7,155.6L715.6,155.2L717.4,161.4L719.9,160.7L721.3,164.9L741.7,159.2L745.9,171.0L750.7,169.5L753.7,178.6L752.0,180.1L754.4,189.7L751.4,191.0L751.9,195.9L750.9,196.1L752.1,200.3L755.8,199.4L756.6,204.2L759.8,203.8L761.1,209.3L758.9,210.2L759.7,217.6L737.5,223.7L739.9,234.1L741.4,233.7L743.0,242.3L740.9,242.8L741.7,247.9L740.3,248.2L742.9,264.2L725.0,268.9L726.9,276.6L729.1,275.8L730.4,282.2L728.7,282.7L729.8,292.1L737.3,290.4L741.1,306.6L739.7,306.9L741.0,312.1L731.4,314.3L732.0,317.6L730.8,317.8L733.4,329.9L743.5,327.9L745.4,337.8L747.9,337.5L749.9,349.4L752.7,348.2L753.6,352.8L752.5,353.0L754.4,361.8L752.2,362.1L753.9,371.5L744.0,373.8L744.5,376.3L735.7,378.3L737.2,385.4L738.0,385.1L740.6,397.8L735.8,398.9L737.2,406.5L733.7,407.4L735.8,415.9L736.9,415.6L740.7,433.2L745.5,432.1L747.4,439.4M747.4,439.4L734.2,442.5L735.7,448.5L736.7,448.3L739.8,461.6L738.7,461.8L740.9,471.4L729.4,474.0L730.8,485.0L727.7,485.7L729.4,490.4L722.6,492.4L724.3,496.9L722.6,497.7L724.1,501.8L700.5,506.6L706.2,514.7L702.9,515.6L704.8,523.7L702.1,524.7L703.4,530.3L706.5,534.5L708.7,534.0L712.7,535.6L715.6,538.8L716.7,546.8L712.2,547.9L711.7,552.7L708.1,553.7L709.8,565.2L713.0,568.1L714.0,573.4L712.1,578.7M712.1,578.7L713.8,586.8L719.7,604.8L726.0,603.7L727.6,609.0L735.8,608.0L740.2,625.8L766.0,621.3L773.0,642.2L787.2,639.6L791.8,650.6L793.6,650.0L796.1,656.1L814.1,652.2"],"AN-NZ":["div","M172.1,606.6L166.1,606.4L157.1,607.6L154.2,600.9L152.2,594.1L133.4,597.8L118.4,599.6L113.2,578.6L104.7,579.8L101.3,561.2L69.5,565.2L68.7,562.7L44.8,564.3L44.5,560.6L32.7,561.0L30.3,538.7L17.9,539.7L17.4,534.3L9.1,534.8L7.9,520.0L-21.9,518.7L-21.8,512.9L-41.1,511.3"],"AN-SA":["div","M811.6,716.3L806.1,716.7L805.4,722.4L797.6,723.2L797.5,728.7L716.2,734.4L712.3,741.0L697.3,741.5L696.7,745.1L693.9,745.4L692.0,752.5L685.4,752.9L683.5,758.1L642.5,756.9L624.7,753.9"],"AN\\SA":["sub","M167.8,670.7L163.2,648.4L162.9,641.9L163.8,635.1L166.3,628.7L172.2,620.8L172.1,606.6"],"CA-SA":["tr","M282.1,44.7L308.8,46.1L333.9,48.4M245.1,45.0L254.9,43.3L270.8,44.0L276.4,45.3L282.1,44.7"],"CA/SA":["cv","M333.9,48.4L337.5,43.7L339.6,38.6L340.6,33.4L339.2,19.0L336.1,1.4L329.3,-4.1L327.9,-14.0L325.5,-19.1L318.8,-25.5L312.4,-35.1L310.6,-35.9L308.9,-38.9L303.1,-39.6"],"CO-NZ":["div","M-42.9,127.3L-42.2,128.1L-35.5,128.9L-35.2,127.9L-23.1,129.1L-23.4,131.0L-10.6,131.3L-10.2,127.6L-2.0,127.8L-1.8,124.9L12.6,126.3L26.4,128.0L26.1,130.1L31.4,129.9L31.2,131.8L39.0,132.6L39.3,138.8L87.1,141.7L87.5,133.6L94.5,134.0L94.6,124.7L95.5,118.9L110.5,118.8L109.9,114.1L109.9,76.3M-44.5,127.3L-42.9,127.3"],"NZ\\SA":["sub","M172.1,606.6L173.8,598.5L174.2,590.5L175.5,586.5L177.6,572.8L177.7,563.7L179.5,558.6L179.9,545.6L184.4,531.4L186.3,517.2L188.0,511.7L191.3,505.8L193.3,498.9L200.0,488.4L200.6,483.6L200.4,477.4L201.5,473.2L202.8,459.7L203.4,445.4L204.5,439.0L208.8,427.5L212.8,400.9L214.7,369.7M173.0,307.4L152.7,283.9L139.4,262.9L129.6,244.3L123.5,229.9L118.2,210.0L117.8,202.5L118.5,187.2L121.5,182.4"],"NZ\\AP":["sub","M214.7,369.7L215.3,362.6L214.2,352.5L210.7,343.0L201.8,332.6L178.6,313.3L173.0,307.4"],"NZ\\ND":["sub","M121.5,182.4L121.0,180.0L122.1,174.4L121.5,168.1L124.8,152.8L133.3,134.5L148.1,116.1L151.0,109.3L154.9,94.9L154.0,90.0"],"SC-AN":["tr","M275.4,729.6L284.8,733.6L307.8,740.1L319.9,744.5L345.1,755.6M368.9,765.1L379.5,760.4L397.7,755.7L399.8,750.9L435.4,749.6L460.2,752.4M460.2,752.4L479.7,755.0L487.5,759.8L500.0,756.3L506.7,760.2L530.9,763.9L567.6,754.1M567.6,754.1L610.0,756.2"],"SC-SA":["tr","M593.7,700.3L567.6,695.9L555.3,694.6L558.7,698.6L561.4,704.6L547.5,707.3L533.7,706.4L527.1,702.1L518.3,700.9L484.0,691.5L451.4,679.3L429.0,676.9L415.4,676.6L401.8,677.1L388.1,678.7L377.2,682.1L349.3,686.5L324.0,686.0L312.4,686.7L264.0,693.2L235.7,694.3L207.7,687.2L190.0,679.1L167.8,670.7"],"SW-SC":["tr","M593.7,700.3L590.8,703.3L590.8,706.8L586.2,707.5L585.7,714.4L582.6,714.5L582.4,715.7L582.4,718.6L584.8,718.5L585.7,720.9L587.9,721.0L588.5,726.0L590.4,726.0L590.5,732.6L589.0,732.7L589.5,738.1L593.1,738.2L593.1,745.1L588.1,745.1L588.8,749.4L592.7,754.3L609.9,754.7L610.0,756.2"],"SW-AN":["tr","M610.0,756.2L624.7,753.9"],"SW/SA":["sub","M624.7,753.9L633.8,749.7L643.6,739.2L645.1,731.9L641.4,721.7L633.1,712.9L621.6,704.2L610.8,700.9L601.4,700.0L593.7,700.3"],"CO\\PM":["sub","M109.9,76.3L106.6,71.5L101.2,68.2L95.9,63.6L85.1,58.0L82.4,55.8L75.7,47.7"],"ND/NZ":["sub","M148.2,76.6L147.3,79.7L152.3,85.4L154.0,90.0"],"CA\\ND":["cv","M166.0,62.7L165.8,52.4L168.1,46.7L175.5,36.1L180.1,32.4L186.0,29.8L189.8,26.1L193.7,19.4L196.6,17.1L209.9,15.4L215.7,15.0L220.6,16.9M220.6,16.9L230.3,25.5L241.3,38.3L243.9,41.9L245.1,45.0"]},"prof":{"A":[[221,91,51],[264,103,51],[280,109,69],[258,107,51],[244,115,53],[240,90,54],[516,242,50],[275,106,52],[414,195,54],[302,121,50],[227,99,61],[296,119,50],[561,258,55],[467,200,51],[276,99,53],[273,98,51],[292,106,50],[306,107,52],[238,102,50],[296,121,50],[275,113,53],[329,100,50],[294,122,51],[421,175,54],[119,62,56],[298,105,52],[522,253,60],[505,237,53],[475,218,51],[279,105,54],[251,113,53],[261,108,51],[282,117,54],[100,54,61],[282,112,62],[111,62,51],[316,102,57],[141,68,50],[541,266,57],[521,251,60],[274,105,53],[387,192,53],[302,137,52],[469,231,54],[288,115,52],[269,114,60],[145,51,62],[335,107,54],[342,109,53],[355,151,51],[293,104,52],[559,267,53],[313,109,50],[85,31,51],[280,119,57],[259,117,56],[277,146,53],[135,72,50],[304,115,50],[318,115,50],[290,104,51],[254,104,50],[780,525,54],[288,110,55],[528,230,52],[214,39,53],[280,108,54],[280,93,53],[270,105,51],[306,113,50],[274,106,53],[294,125,51],[156,72,58],[363,172,58],[291,92,51],[305,104,51],[277,121,50],[373,148,50],[272,107,54],[547,270,62],[427,28,50],[411,175,50],[731,10,53],[263,90,50],[268,109,53],[324,122,51],[297,124,60],[289,124,56],[277,122,52],[278,112,56],[480,189,53],[39,26,50],[843,557,56],[287,109,55],[104,56,52],[267,111,56],[335,120,50],[135,60,56],[138,68,52],[503,213,56],[258,100,56],[264,105,52],[185,40,50],[237,93,50],[432,159,52],[335,117,52],[280,111,58],[288,116,53],[290,133,51],[477,215,56],[322,113,51],[537,246,50],[799,517,59],[325,122,57],[296,112,53],[322,95,50],[476,190,54],[339,101,50],[800,527,59],[151,46,50],[503,197,51],[-35,10,50],[299,152,51],[518,217,52],[248,99,54],[262,125,54],[318,128,64],[252,117,52],[616,290,51],[483,198,51],[323,94,50],[443,201,54],[219,77,51],[248,123,51],[417,153,51],[316,120,51],[319,115,63],[283,131,50],[316,92,53],[280,109,50],[276,145,50],[308,114,63],[122,34,52],[577,276,54],[482,220,62],[255,138,51],[436,176,57],[249,111,52],[465,175,52],[107,55,51],[345,106,52],[312,115,55],[301,123,50],[483,212,53],[324,118,52],[306,124,53],[257,100,52],[256,111,50],[302,130,61],[308,102,52],[292,103,57],[277,118,53],[277,107,55],[116,45,67],[103,35,50],[74,47,50],[85,15,61],[65,31,50],[56,30,59],[73,13,53],[78,31,50],[68,20,52],[515,246,60],[73,15,55],[67,35,50],[115,29,56],[111,26,68],[93,27,63],[152,49,50],[105,32,51],[129,44,53],[147,40,77],[97,34,51],[306,119,53],[571,290,64],[299,121,55],[339,126,50],[321,121,58],[590,262,58],[313,141,59],[288,123,55],[270,115,55],[268,109,52],[530,243,55],[352,147,68],[298,117,55],[791,527,53],[266,102,51],[295,125,54],[155,71,51],[307,108,50],[331,94,51],[303,115,57],[323,124,53],[717,16,58],[591,290,61],[791,535,54],[323,117,53],[334,120,51],[308,127,58],[316,126,52],[302,115,53],[120,56,51],[289,98,50],[272,111,50],[312,126,52],[286,110,52],[303,116,53],[786,530,51],[241,91,51],[308,125,65],[521,262,51],[332,127,52],[299,118,54],[124,66,59],[122,33,51],[718,33,51],[354,147,60],[511,223,53],[162,75,51],[313,118,55],[261,101,59],[246,121,52],[529,250,54],[290,111,59],[131,33,56],[213,80,52],[319,123,53],[428,210,53],[173,63,55],[536,247,53],[122,58,55],[295,107,56],[297,117,52],[517,256,61],[326,123,53],[43,33,59],[79,36,55],[577,276,71],[130,48,53],[272,112,56],[94,33,57],[76,33,51],[344,132,55],[199,71,50],[546,274,51],[325,123,52],[167,49,54],[305,122,50],[132,52,50],[283,112,58],[551,272,60],[492,221,70],[265,103,50],[245,116,53],[411,184,58],[395,175,50],[293,118,50],[135,40,50],[293,147,51],[355,146,50],[210,74,50],[277,114,50],[337,142,50],[105,37,50],[263,105,53],[274,109,50],[338,145,58],[733,33,50],[404,178,55],[310,117,50],[289,116,54],[198,35,52],[426,194,55],[135,64,55],[307,121,53],[147,58,51],[267,93,50],[296,117,53],[107,47,51],[304,129,50],[298,101,53],[144,42,50],[322,95,53],[555,266,56],[298,114,54],[298,114,51],[292,102,54],[387,189,57],[539,247,54],[422,180,55],[272,125,50],[506,243,50],[509,220,52],[300,122,53],[521,238,54],[257,155,50],[310,130,50],[136,72,51],[577,279,62],[139,19,53],[399,200,50],[148,88,52],[305,125,51],[286,116,51],[113,64,50],[307,127,51],[319,117,54],[179,44,53],[798,538,60],[792,535,52],[256,112,50],[149,74,51],[339,106,56],[51,45,53],[781,537,50],[302,130,56],[151,52,51],[304,86,57],[286,104,52],[319,78,54],[540,205,55],[268,194,51],[527,249,70],[307,122,51],[396,197,50],[117,80,52],[216,220,50],[288,118,51],[123,33,58],[373,171,52],[789,532,55],[199,33,50],[516,242,58],[393,197,56],[333,147,51],[460,199,50],[258,120,50],[280,103,50],[346,166,51],[458,174,56],[329,114,50],[280,92,64],[236,149,53],[-48,33,50],[269,104,50],[126,56,51],[532,272,60],[787,521,51],[297,127,51],[295,126,55],[302,132,50],[285,111,50],[268,123,51],[295,130,51],[98,33,51],[272,133,50],[496,202,50],[209,95,53],[293,121,56],[337,130,53],[332,108,53],[258,108,50],[127,35,54],[403,199,50],[303,116,52],[546,250,53],[-50,7,50],[500,196,59],[441,167,50],[256,119,51],[249,202,52],[524,246,50],[307,76,54],[549,246,51],[296,117,51],[326,80,61],[280,116,51],[294,87,55],[267,100,54],[271,121,50],[274,33,53],[315,100,50],[485,257,51],[241,43,53],[413,192,51],[259,134,50],[224,58,55],[215,89,53],[226,85,59],[312,81,56],[236,61,55],[292,87,53],[302,80,52],[570,280,56],[219,119,52],[312,69,53],[322,86,52],[157,30,52],[210,88,50],[221,102,50],[295,112,50],[280,125,52],[318,99,52],[327,138,51],[418,144,54],[304,80,50],[272,140,50],[281,89,58],[273,93,50],[428,266,51],[145,64,51],[550,220,51],[517,188,55],[325,73,56],[278,111,54],[319,98,58],[298,77,51],[139,8,54],[83,38,63],[272,132,50],[264,79,51],[451,186,51],[487,166,62],[303,124,53],[300,83,50],[288,80,51],[178,57,51],[-5,33,56],[122,53,51],[782,533,50],[264,109,54],[679,13,59],[284,106,50],[294,116,51],[149,74,53],[304,99,53],[301,105,64],[799,548,53],[790,529,61],[112,43,55],[493,198,51],[237,67,51],[528,229,61]],"B":[[42,10,51],[120,52,50],[540,131,50],[293,120,50],[548,131,51],[114,46,61],[105,37,56],[75,25,54],[71,29,51],[128,68,53],[121,47,51],[368,109,57],[661,152,50],[547,141,60],[43,10,54],[109,36,63],[650,10,50],[119,49,55],[113,50,50],[529,117,51],[442,108,51],[99,33,58],[128,51,51],[365,10,53],[365,21,64],[118,59,51],[351,105,50],[523,128,52],[112,51,55],[108,30,63],[26,7,55],[101,41,50],[119,53,61],[48,10,52],[354,12,50],[382,103,50],[51,11,64],[119,48,50],[250,108,55],[308,105,51],[94,24,50],[119,58,51],[118,63,67],[323,99,53],[87,26,52],[383,106,50],[104,66,62],[246,101,52],[377,87,54],[668,166,55],[349,117,50],[47,17,59],[44,10,51],[44,9,58],[120,53,51],[82,27,57],[102,38,54],[107,42,52],[117,46,51],[52,14,52],[49,10,54],[96,36,52],[435,10,50],[78,41,52],[381,108,64],[648,158,56],[92,30,50],[62,8,58],[72,35,50],[79,24,52],[115,46,50],[89,26,51],[105,30,54],[110,28,55],[89,26,51],[83,25,54],[465,17,50],[127,42,52],[80,30,53],[81,24,53],[85,25,53],[93,37,51],[31,12,60],[92,34,51],[91,29,50],[99,29,63],[91,24,51],[80,25,50],[94,36,52],[83,26,50],[94,24,57],[42,12,50],[125,48,58],[83,25,56],[130,50,55],[45,10,56],[47,10,50],[81,27,58],[117,42,57],[111,46,68],[34,8,54],[108,40,50],[116,46,50],[75,20,50],[76,21,56],[85,35,55],[104,34,59],[95,30,50],[49,6,55],[102,38,59],[88,37,54],[100,29,50],[124,46,63],[119,41,52],[64,10,50],[129,58,60],[93,28,56],[76,27,55],[118,35,66],[79,26,54],[84,30,61],[90,35,50],[33,9,51],[44,13,51],[110,45,50],[40,10,56],[98,28,57],[37,8,54],[-13,10,50],[78,30,52],[56,6,50],[30,10,51],[78,23,52],[116,35,53],[61,10,57],[112,38,52],[47,10,55],[63,9,52],[69,20,52],[47,5,51],[61,18,55],[118,35,54],[78,23,67],[90,29,50],[84,18,51],[66,16,57],[89,27,65],[129,47,52],[103,35,55],[-22,10,50],[52,10,50],[93,42,64],[78,33,51],[57,9,58],[50,35,51],[73,10,52],[36,10,50],[82,12,51],[88,20,50],[71,12,50],[48,10,52],[88,22,51],[47,10,50],[58,10,50],[77,10,50],[108,17,51],[47,16,53],[57,12,59],[36,11,53],[77,28,51],[70,19,52],[89,24,51],[78,21,55],[81,32,57],[114,28,70],[67,35,61],[136,29,52],[90,35,57],[116,38,56],[84,19,61],[83,27,64],[90,22,83],[407,10,50],[95,30,55],[414,10,52],[191,83,53],[125,36,51],[219,96,54],[78,32,51],[429,105,52],[317,113,53],[105,27,66],[79,24,50],[407,124,51],[311,119,50],[142,49,53],[433,10,50],[96,34,53],[107,33,56],[63,26,50],[106,65,50],[225,101,51],[344,36,51],[44,35,52],[332,40,60],[384,94,54],[141,59,52],[94,28,50],[689,179,52],[327,28,53],[431,106,52],[343,117,50],[120,59,50],[140,45,51],[72,30,51],[69,29,50],[52,4,53],[87,34,58],[75,25,56],[540,134,52],[136,48,54],[124,38,55],[96,30,53],[119,31,64],[522,137,62],[83,39,52],[96,57,53],[332,113,58],[89,25,54],[133,44,58],[495,29,54],[86,31,54],[92,55,57],[305,75,51],[98,38,52],[94,33,68],[103,51,56],[384,118,57],[336,114,55],[712,168,51],[386,112,53],[508,126,53],[140,44,51],[326,120,63],[464,27,55],[155,65,53],[139,67,54],[143,54,66],[160,60,57],[136,52,60],[499,33,52],[101,67,50],[502,121,54],[63,26,50],[468,33,51],[140,61,51],[89,55,52],[93,33,50],[365,105,52],[103,82,51],[69,40,52],[118,68,50],[60,33,60],[62,33,51],[433,115,54],[330,65,52],[90,52,56],[321,116,53],[353,118,54],[133,33,51],[303,115,51],[457,113,59],[341,32,51],[63,33,51],[423,112,52],[81,32,51],[115,35,66],[71,28,53],[123,45,56],[133,45,62],[121,45,50],[156,100,50],[142,64,54],[131,48,55],[131,45,51],[135,49,50],[134,58,71],[70,33,56],[46,33,52],[72,33,63],[64,33,55],[58,33,61],[68,33,62],[57,33,57],[76,33,54],[67,33,60],[72,33,58],[71,19,68],[94,62,52],[101,39,60],[134,61,52],[65,37,57],[131,64,54],[-98,14,51],[520,25,50],[126,70,56],[63,32,52],[429,10,51],[115,70,50],[92,38,55],[87,40,60],[131,36,56],[240,12,50],[44,42,50],[58,21,52],[419,107,58],[98,52,57],[323,113,63],[59,53,54],[464,10,53],[97,27,53],[442,118,52],[507,131,54],[60,12,65],[138,54,53],[101,19,60],[98,47,55],[699,194,52],[483,5,52],[499,5,55],[256,110,59],[50,38,52],[108,46,52],[368,35,54],[60,29,51],[339,112,57],[51,42,50],[88,36,60],[28,13,51],[43,24,50],[35,31,52],[685,170,52],[460,5,50],[165,101,50],[484,28,53],[89,44,52],[29,48,50],[74,50,56],[77,50,54],[101,33,52],[43,33,52],[481,40,51],[172,88,50],[359,109,50],[340,94,58],[114,110,53],[458,26,53],[380,111,54],[79,67,51],[118,69,51],[178,90,52],[-6,24,56],[108,36,62],[679,178,55],[452,117,50],[111,50,51],[145,53,57],[471,5,54],[346,46,50],[88,51,54],[91,64,51],[383,110,56],[527,134,50],[123,39,63],[353,111,54],[335,118,52],[118,58,50],[378,109,53],[111,45,56],[688,186,52],[131,87,51],[79,33,51],[138,46,62],[38,33,52],[60,36,53],[78,33,57],[100,33,50],[305,115,53],[355,101,51],[327,117,55],[141,75,51],[460,49,50],[647,161,56],[508,135,50],[67,33,51],[523,122,51],[492,21,57],[440,33,50],[491,10,55],[114,45,53],[452,10,58],[67,33,52],[476,32,53],[101,33,52],[379,10,51],[412,113,50],[468,47,53],[77,33,50],[463,10,56],[481,29,50],[465,10,50],[479,10,55],[457,38,50],[357,19,57],[454,24,58],[457,40,52],[468,35,51],[479,33,53],[479,33,57],[495,33,54],[29,5,51],[471,27,53],[446,33,53],[475,39,56],[470,37,52],[451,33,52],[470,33,52],[468,19,59],[469,35,56],[469,32,56],[497,40,50],[479,33,51],[455,33,51],[495,16,58],[449,10,54],[464,36,55],[476,33,54],[476,33,51],[480,33,50],[490,33,50],[489,32,50],[472,33,53],[483,33,50],[472,33,50],[481,33,50],[468,33,51],[480,26,50],[473,33,55],[479,33,53],[475,33,50],[453,33,57],[476,33,57],[472,33,50],[472,33,51],[473,33,50],[467,14,53],[482,23,63],[476,33,60],[476,33,58],[470,33,55],[469,33,50],[486,33,51],[474,33,54],[504,33,51],[494,33,50],[461,33,53],[465,13,57],[482,33,52],[484,33,50],[463,33,51],[456,33,51],[467,27,56],[458,22,59],[476,15,54],[468,33,51],[466,20,56],[540,33,60],[463,13,74],[329,123,54],[317,48,51],[120,45,52],[113,35,54],[123,59,51],[126,59,54],[393,124,50],[125,60,54],[479,119,53],[351,120,50],[328,122,53],[61,19,51],[536,127,51],[93,65,51],[500,32,54],[154,84,51],[709,166,55],[385,115,55],[405,122,54],[80,39,52],[89,46,50],[137,39,50],[97,60,56]]},"volc":[[178.0,98.0],[178.6,99.1],[178.0,101.8],[178.4,101.1,"Nevado del Ruiz"],[178.3,103.4],[177.7,105.1],[171.9,120.7],[166.9,128.9],[168.7,126.9],[163.7,135.0],[159.8,137.8],[157.0,139.2],[155.3,140.5],[154.6,141.8],[157.9,144.5],[151.4,145.3],[150.8,146.9],[152.4,147.4],[151.6,148.7],[154.2,149.7],[149.6,149.5],[157.2,150.8],[148.5,153.5],[151.8,153.8],[148.6,151.7],[154.1,155.3],[152.8,154.8],[147.5,156.6],[157.4,155.4],[150.1,156.8,"Cotopaxi"],[145.9,158.6],[146.6,164.7,"Chimborazo"],[148.5,167.9],[150.1,164.7],[151.0,170.0,"Sangay"],[214.3,291.3],[197.7,300.7],[202.6,305.2],[205.5,304.2],[207.7,307.8],[209.7,307.9],[213.8,313.0,"El Misti"],[218.4,313.4],[221.1,317.6],[218.9,316.1],[223.2,320.3],[224.8,321.8],[228.5,324.9],[231.1,331.0],[234.4,331.7],[234.8,334.2],[239.9,341.3],[237.2,341.5],[239.7,357.3],[241.0,359.4],[245.7,377.2],[245.8,378.3,"Licancabur"],[248.6,378.9],[247.0,380.0],[248.0,382.4],[248.1,382.9],[247.4,385.8],[246.1,375.6],[249.0,387.4],[246.8,388.2],[245.2,388.3],[247.1,389.5],[243.5,389.7],[244.2,391.9],[239.4,393.2],[242.4,394.0],[247.2,383.7,"Láscar"],[241.3,400.8],[239.9,397.2,"Llullaillaco"],[240.0,403.4],[239.4,404.1],[239.4,414.8],[241.3,418.0],[242.0,420.3],[240.1,401.7],[238.3,421.1],[239.8,421.1,"Ojos del Salado"],[246.7,392.9],[242.3,400.8],[241.4,416.3],[243.6,416.2],[247.0,417.7],[239.6,422.0],[228.4,484.2,"Tupungatito"],[228.1,491.6],[223.9,496.1],[227.3,495.9],[226.8,499.2],[227.6,487.9],[223.4,498.1],[227.5,501.2],[222.0,505.6],[221.4,502.2],[219.8,505.8],[222.1,510.6],[218.9,509.9],[216.1,512.0],[217.4,512.9],[218.4,514.6],[233.5,514.2],[219.7,506.5],[226.3,521.4],[214.1,518.7],[214.3,524.1],[213.4,529.3],[211.7,533.1],[215.9,528.6],[223.2,540.2],[212.2,533.8],[212.8,539.7],[210.7,542.5],[210.9,536.9,"Llaima"],[211.0,545.0],[213.0,546.4],[212.3,548.9],[209.1,544.2,"Villarrica"],[208.2,549.3],[207.8,553.5],[207.1,557.8],[207.4,555.9,"Puyehue-Cordón Caulle"],[206.1,559.7],[209.4,561.6],[206.0,563.0],[203.9,561.0,"Osorno"],[204.8,567.6],[204.6,568.7],[203.2,568.8],[224.9,570.2],[202.8,563.3,"Calbuco"],[203.2,573.8],[202.6,578.3,"Chaitén"],[204.5,578.0],[201.4,584.7],[200.5,590.8],[203.6,593.0],[198.7,596.9],[199.6,600.6],[197.8,601.0],[199.7,609.0,"Hudson"],[201.3,581.9],[192.6,653.3],[194.1,659.4],[194.9,640.2,"Lautaro"],[195.8,673.3],[229.3,670.8],[224.2,699.7],[198.9,602.2]],"places":{"Illapel2015":[211.4,465.7],"Valdivia1960":[195.7,531.4],"Maule2010":[200.3,511.2],"Iquique2014":[219.6,346.1],"Vallenar1922":[227.9,432.9],"Illapel1943":[214.2,462.6],"Bolivia1994":[248.8,288.4],"RobinsonCrusoe":[146.4,486.4],"AlejandroSelkirk":[128.9,487.5],"SanFelix":[135.1,412.8],"Galapagos":[40.8,156.0],"Santiago":[220.7,484.5],"Coquimbo":[214.4,449.5],"profA_w":[214.7,370],"profA_e":[290.0,370],"profB_w":[202.8,460],"profB_e":[285.5,460],"Titicaca":[232.9,308.0]},"grat":{"lat":{"10":50,"0":150,"-10":250,"-20":350,"-30":450,"-40":550,"-50":650,"-60":750},"lon":{"-90":45.3,"-80":135.9,"-70":226.6,"-60":317.2,"-50":407.8,"-40":498.5,"-30":589.1}}};
+const $ = s => document.querySelector(s);
+const CS = Math.cos(25*Math.PI/180);
+const P = (lon,lat) => [ (lon+95)*CS*10, (15-lat)*10 ];
+const r1 = v => Math.round(v*10)/10;
+const fmt = s => { const a=Math.abs(s); return (s<0?'+':'')+String(Math.floor(a/60)).padStart(2,'0')+':'+String(Math.floor(a%60)).padStart(2,'0'); };
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+/* ---------- Figuren ---------- */
+function viewBoxFor(lonMin,lonMax,latMax,latMin){ const [x0,y0]=P(lonMin,latMax), [x1,y1]=P(lonMax,latMin); return [x0,y0,x1-x0,y1-y0]; }
+function tri(x,y,s,cls,fill){ return `<path class="${cls||''}" d="M${r1(x)},${r1(y-s)}L${r1(x+s*.9)},${r1(y+s*.6)}L${r1(x-s*.9)},${r1(y+s*.6)}Z" fill="${fill||'var(--magma)'}" stroke="var(--ink)" stroke-width="${s*.15}"/>`; }
+const BCOL = {sub:'var(--magma)',tr:'#c9a3ff',cv:'var(--amber)',div:'var(--slab)'};
+function mapSVG(o){
+  const vb=o.vb, k=Math.max(vb[2],vb[3]*1.1)/600; // schaalfactor voor lijndiktes
+  let s=`<svg viewBox="${vb.map(r1).join(' ')}" role="img" aria-label="${o.aria||'Kaart'}" preserveAspectRatio="xMidYMid meet">`;
+  s+=`<rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="var(--sea)"/>`;
+  // graticule
+  for(const [lat,y] of Object.entries(DATA.grat.lat)) s+=`<line x1="${vb[0]}" x2="${vb[0]+vb[2]}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="${.8*k}"/><text x="${vb[0]+4*k}" y="${y-3*k}" font-size="${11*k}" fill="var(--muted)">${lat==0?'0°':Math.abs(lat)+'°'+(lat<0?' ZB':' NB')}</text>`;
+  for(const [lon,x] of Object.entries(DATA.grat.lon)) if(x>vb[0]+45*k && x<vb[0]+vb[2]-20*k) s+=`<line y1="${vb[1]}" y2="${vb[1]+vb[3]}" x1="${x}" x2="${x}" stroke="var(--line)" stroke-width="${.8*k}"/><text x="${x+3*k}" y="${vb[1]+vb[3]-5*k}" font-size="${11*k}" fill="var(--muted)">${Math.abs(lon)}° WL</text>`;
+  s+=`<path d="${DATA.land}" fill="var(--land)" stroke="var(--land2)" stroke-width="${1*k}"/>`;
+  if(o.extraBelow) s+=o.extraBelow(k);
+  if(o.bnd){ for(const [name,[type,d]] of Object.entries(DATA.bnd)){ const col=o.bnd==='typed'?BCOL[type]:'#d7e1e6'; s+=`<path d="${d}" fill="none" stroke="${col}" stroke-width="${(o.bnd==='typed'?2.6:1.8)*k}" stroke-linejoin="round" ${o.bnd==='typed'&&type==='sub'?`stroke-dasharray="${7*k} ${3*k}"`:''}/>`; } }
+  if(o.volc) for(const v of DATA.volc) s+=tri(v[0],v[1],o.volcSize||4.2*k,'','var(--magma)');
+  if(o.extra) s+=o.extra(k);
+  return s+'</svg>';
+}
+function quakeDot(x,y,k,label,big){ return `<circle cx="${x}" cy="${y}" r="${(big?7:5)*k}" fill="var(--amber)" class="pulse"/><circle cx="${x}" cy="${y}" r="${(big?6:4.5)*k}" fill="var(--amber)" stroke="var(--ink)" stroke-width="${1.2*k}"/>${label?`<text x="${x+9*k}" y="${y+4*k}" font-size="${13*k}" fill="var(--amber)" font-weight="600">${label}</text>`:''}`; }
+function label(x,y,t,k,col,size,anchor){ return `<text x="${x}" y="${y}" font-size="${(size||13)*k}" fill="${col||'var(--fg)'}" text-anchor="${anchor||'start'}" font-weight="600" paint-order="stroke" stroke="var(--ink)" stroke-width="${3*k}">${t}</text>`; }
+
+// Dossier 1 kaart
+const D1POS = {A:[-76.5,-19],B:[-66,13.2],C:[-47,-55.3],D:[-34.2,-11],E:[-12.6,-27]};
+function figD1(st){
+  const vb=viewBoxFor(-95,-8,15,-60);
+  return mapSVG({vb,bnd:st.typed?'typed':'plain',aria:'Kaart van Zuid-Amerika met plaatgrenzen',extra:k=>{
+    let s='';
+    // passieve rand D: stippellijn langs de kust
+    const coast=[[-35,-5.5],[-35,-8],[-35.6,-10.5],[-38.2,-13.5],[-39,-17],[-40.5,-21],[-42.5,-23]].map(c=>P(...c));
+    s+=`<path d="M${coast.map(p=>p.map(r1).join(',')).join('L')}" fill="none" stroke="${st.typed?'var(--ok)':'#d7e1e6'}" stroke-width="${2*k}" stroke-dasharray="${2*k} ${4*k}"/>`;
+    for(const [L,[lon,lat]] of Object.entries(D1POS)){ const [x,y]=P(lon,lat); s+=`<circle cx="${x}" cy="${y}" r="${12*k}" fill="var(--ink)" stroke="var(--amber)" stroke-width="${2*k}"/><text x="${x}" y="${y+5*k}" text-anchor="middle" font-size="${15*k}" fill="var(--amber)" font-weight="600">${L}</text>`; }
+    const [ix,iy]=P(-71.67,-31.57); s+=quakeDot(ix,iy,k,'M8,3 Illapel',true);
+    if(st.typed){ const [nx,ny]=P(-85,-24); s+=label(nx,ny,'NAZCAPLAAT',k,'var(--muted)',15,'middle'); const [sx,sy]=P(-58,-12); s+=label(sx,sy,'ZUID-AMERIKAANSE PLAAT',k,'var(--muted)',15,'middle');
+      const [ax,ay]=P(-80,-28.5); s+=`<path d="M${ax},${ay} l${30*k},0" stroke="var(--fg)" stroke-width="${2*k}" marker-end="url(#ar)"/>`; s+=label(ax,ay-6*k,'6–8 cm/jaar',k,'var(--fg)',11);
+      const [bx,by]=P(-50,-30); s+=`<path d="M${bx},${by} l${-30*k},0" stroke="var(--fg)" stroke-width="${2*k}" marker-end="url(#ar)"/>`; s+=label(bx-30*k,by-6*k,'± 3 cm/jaar',k,'var(--fg)',11);
+      s+=`<defs><marker id="ar" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10z" fill="var(--fg)"/></marker></defs>`; }
+    return s; }});
+}
+function legendD1(st){ return st.typed ? `<span class="lg"><i style="background:var(--magma)"></i>subductie</span><span class="lg"><i style="background:var(--amber)"></i>convergent (compressie)</span><span class="lg"><i style="background:#c9a3ff"></i>transform</span><span class="lg"><i style="background:var(--slab)"></i>divergent (rug)</span><span class="lg"><i style="background:var(--ok)"></i>passieve rand</span>` : `<span>Wit = plaatgrens of continentrand, nog niet getypeerd. De gele punt is het epicentrum van vanavond.</span>`; }
+
+// Doorsnede
+const PX = km => 60 + (km+100)*0.72, PY = d => 70 + d*0.72;
+const VOLC_A = [[285,'Irruputuncu'],[299,'Olca'],[355,'Putana'],[353,'Sairecabur'],[354,'Licancabur'],[370,'Láscar'],[367,'Purico'],[384,'Guayaques']];
+function profileSVG(st,key){
+  const data=DATA.prof[key];
+  let s=`<svg viewBox="0 0 800 520" role="img" aria-label="Doorsnede: diepte van aardbevingen tegen afstand tot de trog">`;
+  s+=`<defs><linearGradient id="mant" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a2d3b"/><stop offset="1" stop-color="#2b2219"/></linearGradient><clipPath id="cp"><rect x="60" y="70" width="720" height="432"/></clipPath></defs>`;
+  s+=`<rect x="60" y="70" width="720" height="432" fill="url(#mant)"/>`;
+  for(let d=0;d<=600;d+=100){ s+=`<line x1="60" x2="780" y1="${PY(d)}" y2="${PY(d)}" stroke="var(--line)" stroke-width=".7"/><text x="52" y="${PY(d)+4}" font-size="11" fill="var(--muted)" text-anchor="end">${d}</text>`; }
+  for(let x=-100;x<=900;x+=100){ s+=`<line y1="70" y2="502" x1="${PX(x)}" x2="${PX(x)}" stroke="var(--line)" stroke-width=".7"/><text x="${PX(x)}" y="516" font-size="11" fill="var(--muted)" text-anchor="middle">${x}</text>`; }
+  s+=`<text x="16" y="290" font-size="11" fill="var(--muted)" transform="rotate(-90 16 290)" text-anchor="middle">diepte (km)</text>`;
+  // oppervlak (schematisch)
+  const coast = key==='A'?115:97;
+  s+=`<path d="M60,70 L${PX(-5)},70 L${PX(0)},74 L${PX(coast)},70 Z" fill="#163a52" opacity=".9"/>`;
+  const topo = key==='A'
+    ? `M${PX(coast)},70 L${PX(coast+20)},60 L${PX(200)},52 L${PX(260)},40 L${PX(320)},32 L${PX(380)},30 L${PX(470)},33 L${PX(530)},34 L${PX(570)},48 L${PX(620)},62 L${PX(700)},66 L780,66 L780,70 Z`
+    : `M${PX(coast)},70 L${PX(coast+30)},58 L${PX(200)},50 L${PX(260)},36 L${PX(300)},34 L${PX(360)},46 L${PX(430)},56 L${PX(470)},50 L${PX(520)},58 L${PX(600)},64 L780,66 L780,70 Z`;
+  s+=`<path d="${topo}" fill="var(--land2)"/>`;
+  s+=`<line x1="${PX(0)}" x2="${PX(0)}" y1="62" y2="80" stroke="var(--fg)" stroke-width="1.5"/><text x="${PX(0)}" y="56" font-size="11" fill="var(--fg)" text-anchor="middle">trog</text>`;
+  s+=`<text x="${PX(-55)}" y="64" font-size="10.5" fill="var(--muted)" text-anchor="middle">oceaan</text>`;
+  s+=`<text x="${PX(key==='A'?340:280)}" y="${key==='A'?24:28}" font-size="11" fill="var(--fg)" text-anchor="middle">${key==='A'?'Andes · Altiplano':'Andes'}</text>`;
+  s+=`<text x="776" y="60" font-size="9.5" fill="var(--muted)" text-anchor="end">hoogte overdreven, niet op schaal</text>`;
+  // spookdata
+  if(st.ghost){ for(const [x,d,m] of DATA.prof[st.ghost]) s+=`<circle cx="${r1(PX(x))}" cy="${r1(PY(d))}" r="2.2" fill="#8a9aa3" opacity=".22" clip-path="url(#cp)"/>`; }
+  // zone 100-150
+  if(st.zone) s+=`<rect x="60" y="${PY(100)}" width="720" height="${PY(150)-PY(100)}" fill="var(--amber)" opacity=".09"/><text x="776" y="${PY(125)+4}" font-size="11" fill="var(--amber)" text-anchor="end">100–150 km: water komt vrij</text>`;
+  // punten
+  const sorted=data.slice().sort((a,b)=>a[0]-b[0]);
+  sorted.forEach(([x,d,m],i)=>{ const r=Math.max(1.6,(m/10-4.6)*2.6); s+=`<circle class="${st.anim?'dropin':''}" style="${st.anim?`animation-delay:${(i/sorted.length*1.4).toFixed(2)}s`:''}" cx="${r1(PX(x))}" cy="${r1(PY(d))}" r="${r1(r)}" fill="var(--slab)" fill-opacity=".55" stroke="var(--slab)" stroke-width=".6" clip-path="url(#cp)"/>`; });
+  // hoek
+  if(st.angle!=null){ const a=st.angle*Math.PI/180; const L=1200; const x2=PX(0)+Math.cos(a)*L*0.72, y2=PY(0)+Math.sin(a)*L*0.72;
+    s+=`<line x1="${PX(0)}" y1="${PY(0)}" x2="${r1(x2)}" y2="${r1(y2)}" stroke="var(--amber)" stroke-width="2.5" stroke-dasharray="8 5" clip-path="url(#cp)"/>`;
+    s+=`<path d="M${PX(0)+70},${PY(0)} A70,70 0 0 1 ${r1(PX(0)+70*Math.cos(a))},${r1(PY(0)+70*Math.sin(a))}" fill="none" stroke="var(--amber)" stroke-width="1.5"/><text x="${PX(0)+78}" y="${PY(0)+18}" font-size="12" fill="var(--amber)">${st.angle}°</text>`; }
+  // vlakke plaat schets
+  if(st.slab==='A') s+=`<path class="draw" d="M${PX(0)},${PY(0)} C${PX(150)},${PY(40)} ${PX(250)},${PY(95)} ${PX(330)},${PY(140)} S${PX(520)},${PY(250)} ${PX(800)},${PY(530)}" fill="none" stroke="var(--magma)" stroke-width="3" opacity=".85" clip-path="url(#cp)"/>`;
+  if(st.slab==='B') s+=`<path class="draw" d="M${PX(0)},${PY(0)} C${PX(120)},${PY(45)} ${PX(200)},${PY(95)} ${PX(280)},${PY(105)} L${PX(560)},${PY(118)} C${PX(620)},${PY(122)} ${PX(660)},${PY(150)} ${PX(720)},${PY(190)}" fill="none" stroke="var(--magma)" stroke-width="3" opacity=".85" clip-path="url(#cp)"/>`;
+  // voorspelling
+  if(st.pick!=null){ s+=`<line x1="${PX(st.pick)}" x2="${PX(st.pick)}" y1="40" y2="502" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="4 4"/>`+tri(PX(st.pick),40,9,'','var(--amber)')+`<text x="${PX(st.pick)+12}" y="44" font-size="11" fill="var(--amber)">jouw voorspelling</text>`; }
+  if(st.volc && key==='A'){ VOLC_A.forEach(([x,n],i)=>{ s+=`<g class="dropin" style="animation-delay:${(i*.08).toFixed(2)}s">${tri(PX(x),30-(i%2)*2,7,'','var(--magma)')}</g>`; }); s+=`<text x="${PX(335)}" y="12" font-size="11" fill="var(--magma)" text-anchor="middle">echte vulkanen (Smithsonian GVP)</text>`; }
+  if(key==='B'){ s+=quakeDot(PX(91),PY(22),1,'Illapel 2015, M8,3',true);
+    if(st.caucete) s+=`<ellipse cx="${PX(475)}" cy="${PY(28)}" rx="34" ry="24" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${PX(475)}" y="${PY(28)+40}" font-size="11" fill="var(--amber)" text-anchor="middle">ondiepe bevingen in de korst</text>`;
+    s+=`<text x="${PX(340)}" y="16" font-size="11" fill="var(--muted)" text-anchor="middle">27°–33° ZB: 0 actieve vulkanen</text>`; }
+  if(st.pickable) s+=`<rect id="pickzone" class="pick" x="60" y="0" width="720" height="502" fill="transparent"/>`;
+  return s+'</svg>';
+}
+
+// Dossier 4 kaart Juan Fernández
+function figD4(st){
+  const vb=viewBoxFor(-87,-63,-22,-40);
+  return mapSVG({vb,bnd:'typed',volc:true,aria:'Kaart Juan Fernández-rug en Chili',extra:k=>{
+    let s='';
+    const ridge=[[-82.2,-33.9],[-80.78,-33.75],[-78.85,-33.64],[-76.8,-33.3],[-74.6,-32.9],[-72.9,-32.6]].map(c=>P(...c));
+    s+=`<path d="M${ridge.map(p=>p.map(r1).join(',')).join('L')}" fill="none" stroke="var(--slab)" stroke-width="${9*k}" stroke-linecap="round" opacity=".35"/>`;
+    s+=label(P(-79.6,-36.9)[0],P(-79.6,-36.9)[1],'Juan Fernández-rug (vereenvoudigd)',k,'var(--slab)',12);
+    const gap1=P(-69.2,-27.3), gap2=P(-69.2,-33.3);
+    s+=`<line x1="${gap1[0]}" y1="${gap1[1]}" x2="${gap2[0]}" y2="${gap2[1]}" stroke="var(--amber)" stroke-width="${3*k}" stroke-dasharray="${5*k} ${4*k}"/>`;
+    s+=label(P(-68.7,-30.3)[0],P(-68.7,-30.3)[1],'geen actieve vulkanen',k,'var(--amber)',12);
+    const isl=[['AlejandroSelkirk', st.ages?'Alejandro Selkirk · 1–2 mln jaar':'Alejandro Selkirk'],['RobinsonCrusoe', st.ages?'Robinson Crusoe · ± 4 mln jaar':'Robinson Crusoe']];
+    isl.forEach(([n,t],i)=>{ const [x,y]=DATA.places[n]; s+=`<circle cx="${x}" cy="${y}" r="${5.5*k}" fill="#d9c7a2" stroke="var(--ink)" stroke-width="${1.5*k}"/>`+(i?label(x-8*k,y-14*k,t,k,'#e9dcc0',12,'start'):label(x-4*k,y+22*k,t,k,'#e9dcc0',12,'middle')); });
+    s+=`<line x1="${DATA.places.AlejandroSelkirk[0]}" y1="${DATA.places.AlejandroSelkirk[1]+30*k}" x2="${DATA.places.RobinsonCrusoe[0]}" y2="${DATA.places.RobinsonCrusoe[1]+30*k}" stroke="var(--fg)" stroke-width="${1.2*k}"/>`+label((DATA.places.AlejandroSelkirk[0]+DATA.places.RobinsonCrusoe[0])/2,DATA.places.RobinsonCrusoe[1]+45*k,'180 km',k,'var(--fg)',12,'middle');
+    if(st.hotspot){ const [hx,hy]=P(-81.9,-33.85); s+=`<circle cx="${hx}" cy="${hy}" r="${10*k}" fill="var(--magma)" class="pulse"/><circle cx="${hx}" cy="${hy}" r="${7*k}" fill="none" stroke="var(--magma)" stroke-width="${2.5*k}"/>`+label(hx-14*k,hy+4*k,'hotspot',k,'var(--magma)',12,'end'); }
+    const [sx,sy]=DATA.places.SanFelix; s+=`<circle cx="${sx}" cy="${sy}" r="${4.5*k}" fill="#d9c7a2"/>`+label(sx+8*k,sy+4*k,'San Félix',k,'#e9dcc0',11);
+    const [ix,iy]=DATA.places.Illapel2015; s+=quakeDot(ix,iy,k,'',true);
+    const [cx,cy]=DATA.places.Santiago; s+=`<rect x="${cx-3*k}" y="${cy-3*k}" width="${6*k}" height="${6*k}" fill="var(--fg)"/>`+label(cx+7*k,cy+12*k,'Santiago',k,'var(--fg)',11);
+    s+=label(P(-84,-24.5)[0],P(-84,-24.5)[1],'NAZCAPLAAT → ',k,'var(--muted)',13);
+    return s; }});
+}
+
+// Dossier 5 gesteenten
+function drawRock(cv,kind){
+  const ctx=cv.getContext('2d'); const W=cv.width=480,H=cv.height=360; let seed=kind==='A'?7:13; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+  ctx.fillStyle=kind==='A'?'#9a9d9b':'#2c2e30'; ctx.fillRect(0,0,W,H);
+  for(let i=0;i<9000;i++){ const g=kind==='A'?120+rnd()*60:30+rnd()*40; ctx.fillStyle=`rgb(${g},${g+2},${g+1})`; ctx.fillRect(rnd()*W,rnd()*H,1.6,1.6); }
+  if(kind==='A'){ for(let i=0;i<55;i++){ ctx.save(); ctx.translate(rnd()*W,rnd()*H); ctx.rotate(rnd()*Math.PI); const l=6+rnd()*16; ctx.fillStyle='rgba(240,238,228,.9)'; ctx.fillRect(-l/2,-2,l,4.5); ctx.restore(); }
+    for(let i=0;i<70;i++){ ctx.fillStyle='rgba(25,25,28,.85)'; ctx.beginPath(); ctx.arc(rnd()*W,rnd()*H,1.5+rnd()*2.5,0,7); ctx.fill(); } }
+  else { for(let i=0;i<60;i++){ const x=rnd()*W,y=rnd()*H,r=2+rnd()*4.5; ctx.fillStyle=`rgba(${110+rnd()*40},${150+rnd()*40},${50+rnd()*30},.95)`; ctx.beginPath(); ctx.ellipse(x,y,r,r*.8,rnd()*3,0,7); ctx.fill(); ctx.fillStyle='rgba(255,255,220,.35)'; ctx.fillRect(x-r*.3,y-r*.4,r*.4,r*.3); }
+    for(let i=0;i<30;i++){ ctx.fillStyle='rgba(10,10,12,.9)'; ctx.beginPath(); ctx.arc(rnd()*W,rnd()*H,1+rnd()*3,0,7); ctx.fill(); } }
+  const gr=ctx.createRadialGradient(W*.35,H*.3,20,W/2,H/2,W*.65); gr.addColorStop(0,'rgba(255,255,255,.12)'); gr.addColorStop(1,'rgba(0,0,0,.45)'); ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+}
+function figD5(){ return `<div class="rocks">
+  <div class="rock"><canvas id="rockA" aria-label="Foto-illustratie monster 1"></canvas><h4>Monster 1</h4><span class="find">vindplaats: helling Licancabur, 22,8° ZB</span>
+   <dl><dt>kleur</dt><dd>lichtgrijs</dd><dt>textuur</dt><dd>heel kleine kristallen, hier en daar een groter kristal</dd><dt>mineralen</dt><dd>veldspaat, pyroxeen · geen olivijn</dd><dt>silica</dt><dd>± 60%</dd></dl></div>
+  <div class="rock"><canvas id="rockB" aria-label="Foto-illustratie monster 2"></canvas><h4>Monster 2</h4><span class="find">vindplaats: Robinson Crusoe-eiland, 33,6° ZB</span>
+   <dl><dt>kleur</dt><dd>donkergrijs tot zwart</dd><dt>textuur</dt><dd>fijnkorrelig met groene kristallen</dd><dt>mineralen</dt><dd>pyroxeen, veldspaat, olivijn (groen)</dd><dt>silica</dt><dd>± 45%</dd></dl></div></div>`; }
+
+// Dossier 6 kaart zware bevingen
+const BIG = [['Valdivia1960','1960 Valdivia',9.5],['Maule2010','2010 Maule',8.8],['Vallenar1922','1922 Vallenar',8.5],['Illapel2015','2015 Illapel',8.3],['Iquique2014','2014 Iquique',8.2],['Illapel1943','1943 Illapel',8.1]];
+function figD6(st){
+  const vb=viewBoxFor(-88,-58,-16,-42);
+  return mapSVG({vb,bnd:'typed',aria:'Kaart zware aardbevingen langs Chili',extra:k=>{
+    let s='';
+    // Atacama: droog → weinig sediment
+    s+=label(P(-69.2,-24)[0],P(-69.2,-24)[1],'Atacama (zeer droog)',k,'#e9dcc0',14);
+    BIG.forEach(([key,name,m],i)=>{ const [x,y]=DATA.places[key]; const r=Math.pow(10,(m-8)*0.5)*11*k; s+=`<circle cx="${x}" cy="${y}" r="${r1(r)}" fill="var(--amber)" fill-opacity=".18" stroke="var(--amber)" stroke-width="${1.5*k}" class="dropin" style="animation-delay:${i*.12}s"/><circle cx="${x}" cy="${y}" r="${2.5*k}" fill="var(--amber)"/>`;
+      const left = key==='Illapel1943'||key==='Maule2010'; s+=label(x+(left?-10:10)*k*(1)+(left?-r:r)*.2,y+(key==='Illapel1943'?-8:key==='Illapel2015'?14:5)*k,`${name} · M${String(m).replace('.',',')}`,k,'var(--fg)',14,left?'end':'start'); });
+    if(st.tsunami){ const [ix,iy]=DATA.places.Illapel2015; for(let i=1;i<=3;i++) s+=`<circle cx="${ix}" cy="${iy}" r="${i*22*k}" fill="none" stroke="var(--slab)" stroke-width="${2*k}" class="pulse" style="animation-delay:${i*.5}s"/>`; }
+    const [cx,cy]=DATA.places.Coquimbo; s+=`<rect x="${cx-3*k}" y="${cy-3*k}" width="${6*k}" height="${6*k}" fill="var(--fg)"/>`+label(cx+8*k,cy-2*k,'Coquimbo',k,'var(--fg)',13);
+    return s; }});
+}
+
+/* ---------- Dossiers ---------- */
+const DOSSIERS = [
+{ code:'01', title:'Plaats delict', fig:'d1', src:'plaatgrenzen: Bird (2002) · beving: USGS',
+  lead:'Eerst de basis: <em>op wat voor plek</em> ligt het epicentrum? Rond Zuid-Amerika liggen vijf verschillende randen. Typeer ze.',
+  qs:[
+  { type:'assign', text:'Welk type rand is A t/m E?', rows:[['A','westkust (Peru–Chili)','sub'],['B','noordkust (Caribisch gebied)','trcv'],['C','zuidpunt (Scotiazee)','tr'],['D','oostkust Brazilië','pas'],['E','midden Atlantische Oceaan','div']],
+    choices:[['sub','subductiezone'],['trcv','transform + convergent'],['tr','transforme grens'],['div','divergent (oceanische rug)'],['pas','passieve rand (geen grens)']],
+    hint:'Kijk naar de vulkanen en de diepe trog in het westen. In het oosten is de Atlantische Oceaan in het Krijt opengescheurd: waar ligt die scheur nu?',
+    why:'A is een subductiezone. B wordt ingedrukt en opgeheven, omdat daar een transforme en een convergente grens dicht bij elkaar liggen. C is een transforme grens met de Scotiaplaat: daardoor krult de zuidpunt naar het oosten. E is de mid-oceanische rug waar de Atlantische Oceaan nog steeds breder wordt. D is sinds het openbreken van de oceaan een passieve continentrand: daar is geen plaatgrens meer.',
+    onSolve:st=>{st.typed=true;} },
+  { type:'mc', text:'Het epicentrum ligt bij A. Welke plaat duikt hier onder welke, en waarom?',
+    opts:[['De Nazcaplaat duikt onder de Zuid-Amerikaanse plaat, omdat oceanische lithosfeer een hogere dichtheid heeft.',1],['De Zuid-Amerikaanse plaat duikt onder de Nazcaplaat, omdat een continent zwaarder is dan een oceaanbodem.',0,'Continentale lithosfeer is juist lichter (lagere dichtheid) dan oceanische lithosfeer. Kijk ook naar de trog: aan welke kant ligt die?'],['De Pacifische plaat duikt onder Zuid-Amerika, omdat die het snelst beweegt.',0,'Tussen de Pacifische plaat en Zuid-Amerika ligt nog een andere plaat. Kijk op de kaart.'],['Geen van beide: de platen schuiven langs elkaar.',0,'Dan zou het een transforme grens zijn. Bij A ligt een trog met een vulkanenrij erachter.']],
+    hint:'Oceanische of continentale lithosfeer: welke van de twee heeft de hoogste dichtheid?',
+    why:'De Nazcaplaat (oceanisch, zwaar) zakt met 6 tot 8 cm per jaar de mantel in. De Zuid-Amerikaanse plaat schuift met ongeveer 3 cm per jaar naar het westen. Slab pull is de belangrijkste drijvende kracht.' } ],
+  concl:'De beving ontstond op een actieve continentrand: een subductiezone waar de Nazcaplaat onder Zuid-Amerika duikt.',
+  memo:['Wat is er gebeurd?','Een zware beving op de subductiezone waar de Nazcaplaat onder de Zuid-Amerikaanse plaat duikt.'] },
+
+{ code:'02', title:'Het dieptespoor · 21–23° ZB', fig:'pA', src:'aardbevingen M ≥ 5, 1973–2026: USGS',
+  lead:'Ter vergelijking eerst een ‘normaal’ stuk subductiezone, 1000 km noordelijker. Elk rondje is een echte aardbeving (M ≥ 5) sinds 1973, uitgezet naar <em>afstand tot de trog</em> en <em>diepte</em>.',
+  qs:[
+  { type:'mc', text:'Wat laat de puntenwolk zien?',
+    opts:[['Een zone die vanaf de trog schuin naar het oosten de diepte in gaat: de bovenkant van de wegduikende Nazcaplaat.',1],['De bevingen liggen vooral recht onder de hoogste toppen van de Andes: het gebergte veroorzaakt de bevingen.',0,'Kijk naar de diepte: veel bevingen liggen honderden kilometers diep, ver onder de korst van het gebergte.'],['De bevingen liggen willekeurig verspreid, dus er is geen patroon.',0,'Kijk nog eens: hoe verder je naar rechts (oost) gaat, hoe ... worden de bevingen?'],['De bevingen worden naar het westen dieper: daar zakt de Zuid-Amerikaanse plaat weg.',0,'Links is west (oceaan). Waar liggen de diepste bevingen?']],
+    hint:'Volg de rondjes van links naar rechts. Wat gebeurt er met de diepte?',
+    why:'De bevingen ontstaan in en langs de koude, brosse plaat die de mantel in zakt. Zo’n hellende zone van bevingen heet een Wadati-Benioffzone. Je ziet zelfs bevingen op ruim 500 km diepte.' },
+  { type:'angle', text:'Schat de gemiddelde hellingshoek van de plaat tot ongeveer 250 km diepte. Schuif de lijn over de puntenwolk.', lo:21, hi:31, start:60,
+    hint:'Op ongeveer 500 km van de trog ligt de plaat zo’n 240 km diep. De doorsnede is op ware schaal getekend.',
+    why:'De plaat duikt gemiddeld onder ongeveer 25° de diepte in (tan α ≈ 240/520). Dat is normale, ‘steile’ subductie: tussen de duikende plaat en de continentale plaat zit een wig van hete asthenosfeer. De rode lijn volgt de plaat: dieper wordt hij steiler.', onSolve:st=>{st.slab='A';} },
+  { type:'pick', text:'Voorspel: waar aan het aardoppervlak liggen de vulkanen? Klik in de doorsnede op die afstand.', lo:220, hi:400,
+    hint:'Water komt vrij uit de plaat als die 100 tot 150 km diep ligt. Daarboven ontstaat de deelsmelt.',
+    pre:st=>{st.zone=true;st.pickable=true;},
+    why:'Boven het deel van de plaat dat 100–150 km diep ligt, ontstaat deelsmelt in de hete asthenosfeer. De echte vulkanen (Licancabur, Láscar en andere) liggen 285–385 km van de trog: precies daarboven.', onSolve:st=>{st.volc=true;st.pickable=false;} } ],
+  concl:'Bij normale subductie duikt de plaat onder ± 25°. Waar de plaat 100–150 km diep ligt, ontstaat deelsmelt: ± 300 km landinwaarts ligt een vulkanenrij.',
+  memo:null },
+
+{ code:'03', title:'Het ontbrekende spoor · 30–32° ZB', fig:'pB', src:'aardbevingen M ≥ 5, 1973–2026: USGS',
+  lead:'Nu de doorsnede door de regio van vanavond. Vreemd: tussen 27° en 33° ZB staat <em>geen enkele actieve vulkaan</em>. De grijze stipjes zijn de data van 22° ZB, ter vergelijking.',
+  qs:[
+  { type:'mc', text:'Wat is er anders aan de ligging van de plaat?',
+    opts:[['De plaat duikt eerst tot ± 100 km en loopt dan honderden kilometers bijna horizontaal door onder het continent.',1],['De plaat duikt hier juist steiler dan bij 22° ZB.',0,'Vergelijk de blauwe rondjes met de grijze stipjes. Waar liggen de bevingen tussen 150 en 450 km van de trog?'],['Hier is geen subductie: de bevingen liggen allemaal in de korst.',0,'Er zijn wel degelijk bevingen op 100–120 km diepte, ver landinwaarts.'],['De plaat is hier afgebroken en in de mantel gezakt.',0,'Dan zou je geen bevingen meer zien op 100 km diepte, 300 km landinwaarts.']],
+    hint:'Zoek de rondjes op 300–450 km van de trog. Hoe diep liggen ze daar, vergeleken met de grijze stipjes?',
+    why:'Dit is vlakke subductie. De onderduikende plaat ligt over honderden kilometers op ± 100 km diepte tegen de Zuid-Amerikaanse plaat aan.', onSolve:st=>{st.slab='B';} },
+  { type:'order', text:'Zet de redenering op volgorde: waarom ontbreken hier vulkanen?',
+    cards:['De Nazcaplaat schuift onder een kleine hoek, bijna vlak, onder het continent.','Daardoor zit er (bijna) geen hete asthenosfeer tussen de duikende plaat en de continentale plaat.','Het water uit de plaat komt niet op de juiste diepte in hete mantel terecht: er ontstaat geen deelsmelt.','Er stijgt geen magma op: er ontstaat een volcanic gap.'],
+    hint:'Begin bij de oorzaak die je net in de data zag. Eindig bij wat je aan het oppervlak (niet) ziet.',
+    why:'Zonder hete asthenosfeerwig boven de plaat is er geen gesteente dat door het water kan gaan smelten. Dit vulkaangat heet het Norte Chico-gat.' },
+  { type:'mc', text:'Op ± 470 km van de trog liggen ondiepe bevingen in de korst, onder andere de beving van Caucete (Argentinië, 1977, M7,4). Welke verklaring past het best?',
+    opts:[['De vlakke plaat ligt over een groot vlak tegen het continent: de koppeling is groot en de compressie wordt ver landinwaarts doorgegeven.',1],['Een hotspot onder Argentinië veroorzaakt bevingen in de korst.',0,'Er ligt geen hotspot onder Argentinië. Denk aan de vorige vraag: hoe groot is het contactvlak tussen de platen hier?'],['Daar ligt een divergente plaatgrens.',0,'Op die plek ligt geen plaatgrens. De korst wordt juist samengedrukt.'],['Het zijn bevingen door vulkanisme.',0,'Er zijn hier geen actieve vulkanen.']],
+    pre:st=>{st.caucete=true;},
+    hint:'Bij vlakke subductie is het contactvlak tussen de platen groot. Wat betekent dat voor de wrijving?',
+    why:'Bij vlakke subductie zitten de platen over een groot vlak aan elkaar vast (grote koppeling). Het continent wordt ook ver van de trog in elkaar gedrukt, met zware bevingen in de korst als gevolg.' } ],
+  concl:'Bij Illapel duikt de plaat vlak. Er is geen hete asthenosfeer boven de plaat, dus geen deelsmelt en geen vulkanen. Wel is het contactvlak groot: grote koppeling.',
+  memo:['Waarom geen vulkaan?','Vlakke subductie: geen hete asthenosfeer boven de plaat, dus geen deelsmelt. Dit is het Norte Chico-vulkaangat.'] },
+
+{ code:'04', title:'Verdachte: de Juan Fernández-rug', fig:'d4', src:'vulkanen: Smithsonian GVP · leeftijden: literatuur',
+  lead:'Waarom is de plaat <em>juist hier</em> vlak? Op de oceaanbodem loopt een onderzeese rug met de eilanden Robinson Crusoe en Alejandro Selkirk recht op de trog af.',
+  qs:[
+  { type:'mc', text:'Robinson Crusoe is ± 4 miljoen jaar oud, Alejandro Selkirk 1–2 miljoen jaar. Waar ligt de hotspot nu?',
+    opts:[['Ten westen van Alejandro Selkirk: de Nazcaplaat schuift naar het oosten over een hotspot die vastligt.',1],['Onder Robinson Crusoe, want dat is het grootste eiland.',0,'De grootte zegt niets. Welk eiland is het jongst?'],['Onder Santiago: de rij eilanden wijst daarheen.',0,'Een hotspot ligt vast in de mantel. De plaat schuift erover en neemt de oude vulkanen mee. Waarheen beweegt de Nazcaplaat?'],['Een hotspot beweegt met de plaat mee, dus dat kun je niet weten.',0,'Juist omdat de mantelpluim vastligt, ontstaat er een rij vulkanen die steeds ouder wordt.']],
+    hint:'Hoe jonger het eiland, hoe dichter bij de hotspot. De plaat beweegt richting de trog.',
+    why:'De mantelpluim ligt vast. De Nazcaplaat schuift erover naar het oosten, dus de vulkanen worden naar het oosten steeds ouder. De jongste activiteit ligt aan de westkant.', onSolve:st=>{st.ages=true;st.hotspot=true;} },
+  { type:'num', text:'De eilanden liggen 180 km uit elkaar en schelen ongeveer 3 miljoen jaar in leeftijd. Bereken hoe snel de Nazcaplaat over de hotspot schuift.', unit:'cm per jaar', lo:5.5, hi:6.5,
+    hint:'180 km = 18.000.000 cm. Deel door 3.000.000 jaar.',
+    why:'180 km in 3 miljoen jaar is 18.000.000 cm / 3.000.000 jaar = 6 cm per jaar. Dat past bij de 6 tot 8 cm per jaar uit je boek.' },
+  { type:'mc', text:'De rug duikt bij 32–33° ZB onder Zuid-Amerika, aan de rand van het vulkaangat. Waarom maakt dat de subductie vlakker?',
+    opts:[['De hotspot heeft de plaat van onderen opgewarmd: die heeft een lagere dichtheid en zakt minder makkelijk weg.',1],['De rug is zwaarder dan de rest van de plaat en trekt de plaat sneller omlaag.',0,'Dan zou de subductie juist steiler worden.'],['De hotspot smelt een gat in de Zuid-Amerikaanse plaat.',0,'De hotspot ligt 800 km verderop in de oceaan, niet onder het continent.'],['De rug houdt de plaatbeweging helemaal tegen.',0,'De Nazcaplaat beweegt hier gewoon door, met 6 tot 8 cm per jaar.']],
+    hint:'Wat doet warmte met de dichtheid van gesteente? En wat betekent dat voor de slab pull?',
+    why:'Opgewarmde lithosfeer is lichter dan je op basis van de ouderdom verwacht. Een lichtere plaat zakt moeizamer weg en schuift vlakker onder het continent.' },
+  { type:'multi', need:2, text:'Wetenschappers noemen nog twee andere oorzaken van vlakke subductie langs Zuid-Amerika. Kies er twee.',
+    opts:[['De oceanische plaat is jong en licht, doordat de mid-oceanische rug in de Grote Oceaan dichterbij komt.',1],['De subductiezone is oud en lang: de mantel kan niet om de plaat heen, de rollback vertraagt en het scharnierpunt schuift onder het continent.',1],['Er komt veel sediment in de trog, waardoor de plaat beter glijdt.',0],['Het droge klimaat van de Atacama koelt de plaat af.',0]],
+    hint:'Denk aan de ouderdom van de oceanische plaat en aan rollback.',
+    why:'Het zijn drie factoren samen: een jonge, lichte plaat; door hotspots opgewarmde stukken plaat; en een lange, oude subductiezone waarbij de rollback vertraagt.' } ],
+  concl:'Hoofdverdachte: de Juan Fernández-rug. Door de hotspot is de plaat daar lichter en duikt vlak. Een jonge plaat en een vertraagde rollback helpen mee.',
+  memo:['Waarom juist hier?','De Juan Fernández-rug, opgewarmd door een hotspot, duikt hier onder Zuid-Amerika. De lichtere plaat zakt niet goed weg: vlakke subductie.'] },
+
+{ code:'05', title:'Het lab', fig:'d5', src:'gesteentebeschrijving: methode §1.2',
+  lead:'Het veldteam stuurt twee gesteentemonsters op. Eén komt van een Andesvulkaan, één van Robinson Crusoe. <em>Wat vertellen ze over het magma?</em>',
+  qs:[
+  { type:'assign', text:'Vul het labformulier in.', rows:[['1','Monster 1: gesteente','and'],['1','Monster 1: vulkaantype','strato'],['1','Monster 1: ontstaan','subductie'],['2','Monster 2: gesteente','bas'],['2','Monster 2: vulkaantype','schild'],['2','Monster 2: ontstaan','hotspot']],
+    choices:[['and','andesiet'],['bas','basalt'],['gra','graniet'],['strato','stratovulkaan (meer explosief)'],['schild','schildvulkaan (effusief)'],['subductie','subductie: water → deelsmelt'],['hotspot','hotspot: mantelpluim']],
+    hint:'Andesiet: lichtgrijs, meer silica, geen olivijn. Basalt: donker, weinig silica, vaak olivijn.',
+    why:'Monster 1 is andesiet van een stratovulkaan boven de subductiezone. Monster 2 is basalt van een schildvulkaan boven de hotspot; die uitbarstingen zijn effusief.' },
+  { type:'mc', text:'Waarom bevat monster 1 meer silica dan monster 2?',
+    opts:[['Het basaltische magma neemt op weg omhoog gesteente van de continentale korst op en wordt andesitisch.',1],['Monster 1 is langzamer afgekoeld.',0,'Afkoelsnelheid bepaalt de grootte van de kristallen, niet de samenstelling.'],['Het magma van monster 1 komt rechtstreeks uit de kern.',0,'Magma bij een subductiezone ontstaat in de asthenosfeer boven de plaat.'],['Zeewater voegt silica toe aan het magma.',0,'Water verlaagt het smeltpunt, maar voegt geen silica toe.']],
+    hint:'Waar moet het magma van een Andesvulkaan doorheen, en dat van een oceaaneiland niet?',
+    why:'Onderweg door de dikke continentale korst smelt het magma gesteente op dat rijk is aan silica. Het wordt stroperiger (hogere viscositeit). Met 4 tot 5,5% water geeft dat explosieve uitbarstingen.' } ],
+  concl:'Andesiet = subductiemagma dat korst heeft opgenomen: stroperig, vaak explosief. Basalt = hotspotmagma uit de mantel: vloeibaar, effusief.',
+  memo:null },
+
+{ code:'06', title:'Waarom zó zwaar? En nu?', fig:'d6', src:'magnitudes: USGS',
+  lead:'Chili heeft de zwaarste beving ooit gemeten: Valdivia 1960, M9,5. Vanavond is het M8,3. De minister wil weten <em>waarom het hier zo hard gaat</em> en wat er nu moet gebeuren.',
+  qs:[
+  { type:'multi', need:3, text:'Welke drie factoren zorgen hier voor een grote koppeling (en dus zware bevingen)?',
+    opts:[['Vlakke subductie: kleine hoek, groot contactvlak.',1],['Snelle plaatbeweging: 6 tot 8 cm per jaar.',1],['Weinig sediment in de trog door het droge klimaat.',1],['Veel sediment in de trog als smeermiddel.',0],['Een oude, zware plaat die steil wegzakt.',0],['Een hotspot vlak onder de kust.',0]],
+    hint:'Koppeling = hoe sterk de platen aan elkaar vastzitten. Wat vergroot de wrijving?',
+    why:'Grote koppeling: kleine hoek, snelle platen en weinig ‘smeermiddel’. Er bouwt zich veel spanning op die in één keer vrijkomt. Dezelfde koppeling maakt de Andes extra hoog en breed.' },
+  { type:'mc', text:'De beving van 1943 (M8,1) lag nog geen 50 km van die van vanavond. Wat zegt dat?',
+    opts:[['De platen zitten weer vast. De spanning bouwt zich opnieuw op en het segment breekt na tientallen jaren opnieuw.',1],['De beving van 1943 heeft de spanning blijvend weggenomen. Dit is toeval.',0,'Na een beving blijven de platen bewegen. De spanning bouwt zich dus opnieuw op.'],['Er is een nieuwe plaatgrens ontstaan.',0,'De plaatgrens ligt hier al tientallen miljoenen jaren.'],['Er komt binnenkort een vulkaanuitbarsting.',0,'In dit gebied ontstaat geen magma, zag je in dossier 03.']],
+    hint:'Stoppen de platen met bewegen na een aardbeving?',
+    why:'Langs een subductiezone breken steeds dezelfde segmenten. Tussen 1943 en 2015 schoof de Nazcaplaat ruim 4 meter onder Zuid-Amerika, terwijl de platen vastzaten. Die spanning kwam vanavond vrij.' },
+  { type:'mc', text:'Het is 19:55. Je advies over de kust?',
+    opts:[['Direct de kust ontruimen: een zeer zware, ondiepe (22 km) beving op zee bij een subductiezone tilt de zeebodem op. Dat geeft een tsunami.',1],['Niet ontruimen: de beving is te diep voor een tsunami.',0,'22 km is juist ondiep. Kijk naar de doorsnede van dossier 03.'],['Pas ontruimen als er na een uur hoge golven worden gezien.',0,'Zo dicht bij de kust komen de eerste golven binnen enkele minuten.'],['Niet ontruimen: tsunami’s ontstaan alleen bij vulkaanuitbarstingen.',0,'De meeste tsunami’s ontstaan door zeebevingen.']],
+    hint:'Waar lag het epicentrum, hoe diep, en wat gebeurt er met de zeebodem als de platen losschieten?',
+    why:'Zo ging het ook echt. Chili liet ongeveer 1 miljoen mensen evacueren. De golven waren bij Coquimbo meer dan 4,5 m hoog, op één onbewoond strand zelfs 13,6 m. In Chili kwamen 15 mensen om. De tsunami van 1960 stak de hele Grote Oceaan over, tot Hawaï en Japan.', onSolve:st=>{st.tsunami=true;} } ],
+  concl:'Grote koppeling (vlakke subductie, snelle platen, weinig sediment) zorgt voor zware zeebevingen en een groot tsunamirisico.',
+  memo:['Moet de kust ontruimd worden?','Ja. Een ondiepe zeebeving van M8,3 op de subductiezone tilt de zeebodem op. Grote koppeling betekent zware bevingen en tsunamirisico.'] }
+];
+
+/* ---------- Toestand ---------- */
+const TOTAL = 15*60;
+let S = { screen:'intro', d:0, q:0, time:TOTAL, running:false, name:'', scores:DOSSIERS.map(d=>d.qs.map(()=>null)), tries:0, hintUsed:false, fig:{}, sel:null, solved:false, finishedAt:null };
+let timerId=null;
+function startTimer(){ if(timerId) return; timerId=setInterval(()=>{ if(!S.running) return; S.time--; renderBar(); },1000); }
+function penalty(sec,el){ S.time-=sec; renderBar(); const b=(el||$('#clock'))?.getBoundingClientRect(); if(!b) return; const p=document.createElement('div'); p.className='penalty'; p.textContent='−'+sec+' s'; p.style.left=(b.left+b.width/2-20)+'px'; p.style.top=(b.bottom+4)+'px'; document.body.appendChild(p); setTimeout(()=>p.remove(),1300); }
+
+/* ---------- Render ---------- */
+function renderBar(){
+  const clock=$('#clock'); if(!clock) return;
+  clock.querySelector('b').textContent = fmt(S.time);
+  clock.classList.toggle('low', S.time<=120 && S.time>0); clock.classList.toggle('over', S.time<=0);
+  clock.querySelector('small').textContent = S.time<=0?'overtijd':'deadline minister';
+  $('#score').textContent = scoreSum();
+}
+function scoreSum(){ return S.scores.flat().reduce((a,b)=>a+(b||0),0); }
+function barHTML(){
+  const pips = DOSSIERS.map((d,i)=>`<span class="pip ${i<S.d||S.screen==='report'?'done':i===S.d&&S.screen==='play'?'on':''}">${d.code} ${i<S.d||S.screen==='report'?'✓':''}</span>`).join('');
+  return `<header class="bar"><div class="brand"><span class="dot" aria-hidden="true"></span>Dossier Nazca</div><nav class="pips" aria-label="Voortgang">${pips}</nav>
+  <div class="meters"><div class="meter"><small>score</small><b id="score">${scoreSum()}</b></div><div class="meter clock" id="clock"><small>deadline minister</small><b>${fmt(S.time)}</b></div></div></header>`;
+}
+
+function render(){
+  const app=$('#app');
+  if(S.screen==='intro'){ app.innerHTML = barHTML()+introHTML(); setupIntro(); renderBar(); return; }
+  if(S.screen==='report'){ app.innerHTML = barHTML()+reportHTML(); renderBar(); return; }
+  const D=DOSSIERS[S.d];
+  app.innerHTML = barHTML()+`<main class="main">
+    <section class="panel" aria-label="Bewijsstuk"><div class="phead"><span class="tag teal">bewijsstuk ${D.code}</span><h2>${figTitle(D)}</h2><span class="src">bron: ${D.src}</span></div>
+      <div class="figwrap" id="fig"></div><div class="figfoot" id="figfoot"></div></section>
+    <section class="panel" aria-label="Dossier"><div class="phead"><span class="tag">dossier ${D.code}</span><h2>${D.title}</h2></div><div class="case" id="case"></div></section></main>`;
+  renderFig(); renderCase(); renderBar();
+}
+function figTitle(D){ return {d1:'Plaatgrenzen rond Zuid-Amerika',pA:'Doorsnede 22° ZB · bevingen naar diepte',pB:'Doorsnede 31° ZB · bevingen naar diepte',d4:'Oceaanbodem voor de kust van Chili',d5:'Twee gesteentemonsters',d6:'Zware bevingen langs Chili sinds 1900'}[D.fig]; }
+function renderFig(){
+  const D=DOSSIERS[S.d], st=S.fig, el=$('#fig'), ft=$('#figfoot');
+  if(D.fig==='d1'){ el.innerHTML=figD1(st); ft.innerHTML=legendD1(st); }
+  if(D.fig==='pA'){ el.innerHTML=profileSVG(st,'A'); ft.innerHTML=`<span class="lg"><i style="background:var(--slab);height:8px;width:8px;border-radius:50%"></i>aardbeving (groter = zwaarder)</span><span>x: afstand tot de trog (km) · y: diepte (km) · ware schaal</span>`+(st.volc?`<span class="lg"><i style="background:var(--magma)"></i>actieve vulkaan</span>`:''); bindPick(); }
+  if(D.fig==='pB'){ el.innerHTML=profileSVG(st,'B'); ft.innerHTML=`<span class="lg"><i style="background:var(--slab);height:8px;width:8px;border-radius:50%"></i>aardbeving 30–32° ZB</span><span class="lg"><i style="background:#8a9aa3;height:8px;width:8px;border-radius:50%"></i>ter vergelijking: 22° ZB</span><span>ware schaal</span>`; }
+  if(D.fig==='d4'){ el.innerHTML=figD4(st); ft.innerHTML=`<span class="lg"><i style="background:var(--magma)"></i>actieve vulkaan (▲)</span><span class="lg"><i style="background:var(--slab)"></i>onderzeese rug</span><span class="lg"><i style="background:var(--amber)"></i>vulkaangat</span>`; }
+  if(D.fig==='d5'){ el.innerHTML=figD5(); drawRock($('#rockA'),'A'); drawRock($('#rockB'),'B'); ft.innerHTML='<span>Illustraties van een vers breukvlak, ongeveer 3 × vergroot.</span>'; }
+  if(D.fig==='d6'){ el.innerHTML=figD6(st); ft.innerHTML=`<span class="lg"><i style="background:var(--amber);height:10px;width:10px;border-radius:50%"></i>cirkel: grootte schaalt met de energie (×32 per magnitude-eenheid, hier afgezwakt)</span>`; }
+}
+function bindPick(){ const z=document.getElementById('pickzone'); if(!z) return; z.addEventListener('click',ev=>{ const svg=z.ownerSVGElement; const pt=svg.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY; const p=pt.matrixTransform(svg.getScreenCTM().inverse()); const km=Math.round((p.x-60)/0.72-100); S.fig.pick=km; S.sel=km; renderFig(); renderCase(); }); }
+
+function qHTML(q,qi,D){
+  const done=S.solved; let h=`<div class="qbox fadein"><div class="qnum"><span>vraag ${qi+1} van ${D.qs.length}</span><span>${done?'':`poging ${S.tries+1} · ${[100,60,30][Math.min(S.tries,2)]} punten`}</span></div><p class="qtext">${q.text}</p>`;
+  if(q.type==='mc'||q.type==='multi'){ if(!q._o) q._o=shuffle(q.opts.map((o,i)=>i)); const sel=S.sel||[];
+    h+=`<div class="opts" role="group">`+q._o.map((oi,n)=>{ const o=q.opts[oi]; let c=''; if(sel.includes(oi)) c='sel'; if(done&&o[1]) c='good'; if(q._bad&&q._bad.includes(oi)) c='bad';
+      return `<button class="opt ${c}" data-opt="${oi}" ${done?'disabled':''}><span class="k">${'ABCDEF'[n]}</span><span>${o[0]}</span></button>`; }).join('')+`</div>`;
+    if(q.type==='multi') h+=`<span class="note">Kies er precies ${q.need}.</span>`; }
+  if(q.type==='assign'){ if(!q._sel) q._sel=q.rows.map(()=> ''); h+=`<div class="assign">`+q.rows.map((r,i)=>{ const ok=q._chk?q._chk[i]:null;
+      return `<label for="as${i}"><b>${r[0]}</b>${r[1]}</label><select id="as${i}" data-as="${i}" class="${done||ok===true?'good':ok===false?'bad':''}" ${done?'disabled':''}><option value="">kies…</option>${q.choices.filter(c=>choiceFits(q,r,c)).map(c=>`<option value="${c[0]}" ${(done?r[2]:q._sel[i])===c[0]?'selected':''}>${c[1]}</option>`).join('')}</select>`; }).join('')+`</div>`; }
+  if(q.type==='order'){ if(!q._o) q._o=shuffle(q.cards.map((c,i)=>i)); const seq=done?q.cards.map((c,i)=>i):(S.sel||[]);
+    h+=`<div class="slotlist">`+q.cards.map((c,i)=> seq[i]!=null?`<div class="slot"><span class="n">${i+1}</span><span>${q.cards[seq[i]]}</span></div>`:`<div class="slot empty"><span class="n">${i+1}</span><span>klik hieronder een kaart</span></div>`).join('')+`</div>`;
+    if(!done) h+=`<div class="seq">`+q._o.map(ci=>`<button class="card ${seq.includes(ci)?'used':''}" data-card="${ci}" ${seq.includes(ci)?'disabled':''}><span class="n">+</span><span>${q.cards[ci]}</span></button>`).join('')+`</div><div class="row"><button class="btn ghost" data-act="clear">Wis volgorde</button></div>`; }
+  if(q.type==='num'){ h+=`<div class="numrow"><input type="number" id="numin" step="0.1" inputmode="decimal" ${done?'disabled':''} value="${S.sel??''}" aria-label="Antwoord"><span>${q.unit}</span></div>`; }
+  if(q.type==='angle'){ const v=S.fig.angle??q.start; h+=`<div class="numrow"><input type="range" id="angin" min="5" max="75" value="${v}" ${done?'disabled':''} aria-label="Hellingshoek"><span class="anglev" id="angv">${v}°</span></div>`; }
+  if(q.type==='pick'){ h+=`<div class="note">${S.fig.pick!=null?`Jouw voorspelling: <b class="pts">${S.fig.pick} km</b> van de trog.`:'Klik in de doorsnede links.'}</div>`; }
+  if(q._fb) h+=`<div class="fb">${q._fb}</div>`;
+  if(q._hint) h+=`<div class="fb hint"><b>Tip van je collega:</b> ${q.hint}</div>`;
+  if(done){ const pts=S.scores[S.d][qi]; h+=`<div class="fb ok"><b>${pts>0?`Klopt. +${pts} punten.`:'Dit is het juiste antwoord.'}</b> ${q.why}</div>`;
+    h+=`<div class="row"><button class="btn" data-act="next">${qi<D.qs.length-1?'Volgende vraag →':'Bewijs vastleggen →'}</button></div>`; }
+  else h+=`<div class="row"><button class="btn" data-act="check" ${canCheck(q)?'':'disabled'}>Controleer</button>${q._hint?'':`<button class="btn ghost" data-act="hint">Tip (−30 s)</button>`}</div>`;
+  return h+`</div>`;
+}
+function choiceFits(q,r,c){ // in het lab per rij alleen relevante opties tonen
+  if(q.rows.length===6){ const kind=r[1].split(': ')[1]; const groups={gesteente:['and','bas','gra'],vulkaantype:['strato','schild'],ontstaan:['subductie','hotspot']}; return groups[kind].includes(c[0]); }
+  return true; }
+function canCheck(q){ if(q.type==='mc') return (S.sel||[]).length===1; if(q.type==='multi') return (S.sel||[]).length===q.need; if(q.type==='assign') return q._sel.every(v=>v); if(q.type==='order') return (S.sel||[]).length===q.cards.length; if(q.type==='num') return S.sel!==null&&S.sel!==''; if(q.type==='angle') return true; if(q.type==='pick') return S.fig.pick!=null; }
+
+function renderCase(){
+  const D=DOSSIERS[S.d], el=$('#case');
+  if(S.q>=D.qs.length){ el.innerHTML=`<p class="lead">${D.lead}</p><div class="concl fadein"><span class="stamp">OPGELOST</span><h3>Bewijs vastgelegd</h3><p>${D.concl}</p></div><div class="row"><button class="btn big" data-act="nextd">${S.d<DOSSIERS.length-1?`Naar dossier ${DOSSIERS[S.d+1].code} →`:'Rapport aan de minister →'}</button></div>`; return; }
+  const q=D.qs[S.q];
+  el.innerHTML = `<p class="lead">${D.lead}</p>` + qHTML(q,S.q,D);
+  const ang=$('#angin'); if(ang) ang.addEventListener('input',e=>{ S.fig.angle=+e.target.value; $('#angv').textContent=S.fig.angle+'°'; renderFig(); });
+  if(q.type==='angle' && S.fig.angle==null){ S.fig.angle=q.start; renderFig(); }
+  const num=$('#numin'); if(num) num.addEventListener('input',e=>{ S.sel=e.target.value; el.querySelector('[data-act=check]').disabled=!canCheck(q); });
+  el.querySelectorAll('[data-as]').forEach(s=>s.addEventListener('change',e=>{ q._sel[+e.target.dataset.as]=e.target.value; if(q._chk) q._chk[+e.target.dataset.as]=null; e.target.className=''; el.querySelector('[data-act=check]').disabled=!canCheck(q); }));
+}
+
+function check(){
+  const D=DOSSIERS[S.d], q=D.qs[S.q]; let ok=false, fb='';
+  if(q.type==='mc'){ const oi=S.sel[0]; ok=!!q.opts[oi][1]; if(!ok){ fb=q.opts[oi][2]||'Dat klopt niet.'; (q._bad=q._bad||[]).push(oi); } }
+  if(q.type==='multi'){ const good=S.sel.filter(i=>q.opts[i][1]).length; ok=good===q.need; if(!ok) fb=`${good} van je ${q.need} keuzes ${good===1?'is':'zijn'} goed. Kijk nog eens kritisch.`; }
+  if(q.type==='assign'){ q._chk=q.rows.map((r,i)=>q._sel[i]===r[2]); const n=q._chk.filter(x=>!x).length; ok=n===0; if(!ok) fb=`${n} ${n===1?'antwoord klopt':'antwoorden kloppen'} nog niet (rood omrand).`; }
+  if(q.type==='order'){ ok=S.sel.every((c,i)=>c===i); if(!ok){ const n=S.sel.filter((c,i)=>c===i).length; fb=`${n} van de ${q.cards.length} stappen staan op de goede plek. Wis en probeer opnieuw.`; } }
+  if(q.type==='num'){ const v=parseFloat(String(S.sel).replace(',','.')); ok=v>=q.lo&&v<=q.hi; if(!ok) fb=isNaN(v)?'Vul een getal in.':(v>q.hi?'Te hoog. ':'Te laag. ')+'Let op de eenheden: reken km om naar cm.'; }
+  if(q.type==='angle'){ const v=S.fig.angle; ok=v>=q.lo&&v<=q.hi; if(!ok) fb=v>q.hi?'Te steil: de lijn loopt onder de meeste bevingen door.':'Te vlak: de lijn loopt boven de diepe bevingen.'; }
+  if(q.type==='pick'){ const v=S.fig.pick; ok=v>=q.lo&&v<=q.hi; if(!ok) fb=v<q.lo?'Te dicht bij de trog: daar ligt de plaat nog niet diep genoeg.':'Te ver landinwaarts: daar ligt de plaat al dieper dan 150 km.'; }
+  if(ok){ S.scores[S.d][S.q]=[100,60,30][Math.min(S.tries,2)]; solve(q); }
+  else { S.tries++; penalty(15); if(S.tries>=3){ q._fb='<b>Drie pogingen gebruikt.</b> Lees de uitleg goed: dit heb je nodig voor je rapport.'; S.scores[S.d][S.q]=0; solve(q,true); }
+    else { q._fb=fb; if(q.type==='mc'||q.type==='multi'||q.type==='order') S.sel=[]; renderCase(); } }
+}
+function solve(q,revealed){ S.solved=true; if(!revealed) q._fb=null; if(revealed&&q.type==='angle') S.fig.angle=25; if(revealed&&q.type==='pick') S.fig.pick=330; if(q.type==='assign') q._chk=null; q.onSolve&&q.onSolve(S.fig); if(q.type==='mc'||q.type==='multi') S.sel=q.opts.map((o,i)=>o[1]?i:-1).filter(i=>i>=0); renderFig(); renderCase(); renderBar(); }
+function nextQ(silent){ S.q++; S.tries=0; S.solved=false; S.sel=null; const q=DOSSIERS[S.d].qs[S.q]; if(q){ if(q.type==='mc'||q.type==='multi'||q.type==='order') S.sel=[]; q.pre&&q.pre(S.fig); } if(!silent){ renderFig(); renderCase(); } }
+function nextD(){ if(S.d<DOSSIERS.length-1){ S.d++; S.q=-1; S.fig={anim:true, ghost: DOSSIERS[S.d].fig==='pB'?'A':null}; nextQ(true); render(); setTimeout(()=>{S.fig.anim=false;},1600); } else { S.running=false; S.finishedAt=new Date(); S.screen='report'; render(); } }
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-opt],[data-card],[data-act]'); if(!t) return;
+  if(S.screen!=='play'){ if(t.dataset.act==='start'){ S.name=($('#naam')?.value||'').trim(); S.screen='play'; S.running=true; S.d=-1; startTimer(); nextD(); } if(t.dataset.act==='again'){ location.hash=''; restart(); } return; }
+  const q=DOSSIERS[S.d].qs[S.q];
+  if(t.dataset.opt!=null){ const oi=+t.dataset.opt; if(q.type==='mc') S.sel=[oi]; else { S.sel=S.sel||[]; S.sel=S.sel.includes(oi)?S.sel.filter(x=>x!==oi):(S.sel.length<q.need?[...S.sel,oi]:S.sel); } q._fb=null; renderCase(); }
+  if(t.dataset.card!=null){ S.sel=[...(S.sel||[]),+t.dataset.card]; q._fb=null; renderCase(); }
+  const a=t.dataset.act;
+  if(a==='check') check();
+  if(a==='hint'){ q._hint=true; penalty(30,t); renderCase(); }
+  if(a==='clear'){ S.sel=[]; renderCase(); }
+  if(a==='next') nextQ();
+  if(a==='nextd') nextD();
+});
+function restart(){ DOSSIERS.forEach(d=>d.qs.forEach(q=>{delete q._o;delete q._sel;delete q._chk;delete q._fb;delete q._hint;delete q._bad;})); S={ screen:'intro', d:0, q:0, time:TOTAL, running:false, name:S.name, scores:DOSSIERS.map(d=>d.qs.map(()=>null)), tries:0, fig:{}, sel:null, solved:false }; render(); }
+
+/* ---------- Intro ---------- */
+function introHTML(){ return `<main class="full">
+ <section class="panel hero"><div class="alert"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:var(--magma);display:inline-block;animation:ping 1.6s infinite"></span>Alarm · seismisch netwerk Chili</div>
+  <h1>Zware beving bij <span>Illapel</span></h1>
+  <div class="readout"><div><small>datum</small><b>16-09-2015</b></div><div><small>tijd</small><b>19:54:32</b></div><div><small>magnitude</small><b>M 8,3</b></div><div><small>diepte</small><b>22 km</b></div><div><small>breedte</small><b>31,57° ZB</b></div><div><small>lengte</small><b>71,67° WL</b></div><div><small>plaats</small><b>46 km voor de kust</b></div><div><small>regio</small><b>Coquimbo, Chili</b></div></div>
+  <canvas class="seis" id="seis" aria-label="Seismogram van de beving"></canvas>
+  <p class="brief">Je bent analist bij het crisisteam aardwetenschappen. De minister wil <strong>over 15 minuten</strong> een rapport met antwoord op vier vragen. Je krijgt zes dossiers met echte meetgegevens. Je moet zelf de conclusies trekken.</p>
+  <ul class="qlist"><li><span>01</span>Wat is er gebeurd?</li><li><span>02</span>Waarom staat hier geen enkele vulkaan, maar trilt de aarde wel zo hard?</li><li><span>03</span>Waarom juist hier?</li><li><span>04</span>Moet de kust ontruimd worden?</li></ul></section>
+ <section class="panel side"><h3>Instructie</h3>
+  <dl class="whk"><dt>WAT</dt><dd>Los zes dossiers op over de platentektoniek van Zuid-Amerika (§1.2).</dd><dt>HOE</dt><dd>Alleen, op je laptop. Kijk eerst goed naar het bewijsstuk links, beantwoord dan de vragen rechts.</dd><dt>HULP</dt><dd>Gebruik de tip van je collega (kost 30 seconden) of je boek §1.2. Kom je er niet uit: steek je hand op.</dd><dt>TIJD</dt><dd>15 minuten. Een fout antwoord kost 15 seconden.</dd><dt>KLAAR</dt><dd>Laat je rapport aan je docent zien. Maak daarna de schrijfopdracht in je schrift.</dd></dl>
+  <div class="note">Punten per vraag: 100 bij de eerste poging, 60 bij de tweede, 30 bij de derde. Tijd over aan het einde levert bonuspunten op.</div>
+  <label for="naam" class="note">Naam analist (komt op je rapport)</label><input type="text" id="naam" maxlength="40" value="${S.name.replace(/"/g,'&quot;')}" placeholder="Voornaam en achternaam" autocomplete="name">
+  <div class="row"><button class="btn big" data-act="start">Start de missie</button></div>
+  <div class="note">Alle data zijn echt: aardbevingen uit de USGS-catalogus, vulkanen uit het Smithsonian Global Volcanism Program, plaatgrenzen van Bird (2002).</div></section></main>`; }
+function setupIntro(){ const cv=$('#seis'); if(!cv) return; const ctx=cv.getContext('2d'); const dpr=window.devicePixelRatio||1; const W=cv.clientWidth, H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr; ctx.scale(dpr,dpr);
+  let seed=3; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647-.5;};
+  const pts=[]; for(let i=0;i<W;i++){ const t=i/W; let a=0.04; if(t>.22) a=.25*Math.exp(-(t-.22)*9)+0.06; if(t>.38) a=Math.max(a,1*Math.exp(-(t-.38)*4.2)+0.05); pts.push(rnd()*a*2*(0.6+0.4*Math.sin(i*.9))); }
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches; let n=reduce?W:0;
+  function frame(){ ctx.clearRect(0,0,W,H); ctx.strokeStyle='rgba(85,193,201,.12)'; ctx.lineWidth=1; for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    ctx.strokeStyle='#f3a83b'; ctx.lineWidth=1.3; ctx.beginPath(); for(let i=0;i<n;i++){ const y=H/2+pts[i]*H*.9; i?ctx.lineTo(i,y):ctx.moveTo(i,y);} ctx.stroke();
+    ctx.fillStyle='#93aab6'; ctx.font='11px "IBM Plex Mono",monospace'; if(n>W*.22) ctx.fillText('P',W*.22+3,12); if(n>W*.38) ctx.fillText('S',W*.38+3,12); ctx.fillText('station LSC · component Z',W-180,H-6);
+    if(n<W){ n+=Math.max(2,W/220); requestAnimationFrame(frame); } }
+  frame(); }
+
+/* ---------- Rapport ---------- */
+function reportHTML(){
+  const qp=scoreSum(), max=DOSSIERS.reduce((a,d)=>a+d.qs.length*100,0), bonus=Math.max(0,Math.round(S.time/2)), tot=qp+bonus, pct=qp/max;
+  const rank=pct>=.85?'Hoofdseismoloog':pct>=.65?'Senior-analist':pct>=.45?'Analist':'Stagiair';
+  const rows=DOSSIERS.map((d,i)=>`<tr><td>${d.code} ${d.title}</td><td class="r">${S.scores[i].reduce((a,b)=>a+(b||0),0)} / ${d.qs.length*100}</td></tr>`).join('');
+  const memo=DOSSIERS.filter(d=>d.memo).map(d=>`<div><b>${d.memo[0]}</b>${d.memo[1]}</div>`).join('');
+  const t=S.finishedAt||new Date();
+  return `<main class="full"><section class="panel report"><div class="alert" style="color:var(--ok)">rapport verzonden · ${t.toLocaleDateString('nl-NL')} ${t.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})}</div>
+   <h1 style="margin:0;font-family:var(--font-display);font-size:44px;line-height:1;text-transform:uppercase">Rapport aan de minister</h1>
+   <div class="note">Analist: <b style="color:var(--fg)">${S.name?S.name.replace(/</g,'&lt;'):'(geen naam ingevuld)'}</b></div>
+   <div class="memo">${memo}</div>
+   <div class="task"><h3>Schrijfopdracht · 3 minuten · in je schrift</h3><p style="margin:.3em 0 0">Leg de minister in maximaal vier zinnen uit waarom er bij Illapel <b>wel</b> zware aardbevingen zijn maar <b>geen</b> vulkanen. Gebruik de begrippen <b>vlakke subductie</b>, <b>deelsmelt</b>, <b>koppeling</b> en <b>Juan Fernández-rug</b>.</p></div></section>
+  <section class="panel side"><span class="rank">${rank}</span>
+   <table class="rtab"><thead><tr><th>Dossier</th><th class="r">punten</th></tr></thead><tbody>${rows}
+   <tr><td>Tijdbonus (${S.time>0?fmt(S.time)+' over':'deadline gemist'})</td><td class="r">+${bonus}</td></tr><tr class="tot"><td>Totaal</td><td class="r">${tot}</td></tr></tbody></table>
+   <div class="note">Laat dit scherm aan je docent zien. Rangen: Hoofdseismoloog vanaf 85% van de vraagpunten, Senior-analist vanaf 65%, Analist vanaf 45%.</div>
+   <div class="row"><button class="btn ghost" data-act="again">Nog een keer spelen</button></div></section></main>`;
+}
+
+/* ---------- Start ---------- */
+function start(saved){ if(saved&&saved.S){ S=saved.S; } if(S.screen==='play'){ S.running=true; startTimer(); } render(); }
+window.claude?.hot?.snapshot?.(()=>({S:{...S,fig:{...S.fig,anim:false}}}));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>
